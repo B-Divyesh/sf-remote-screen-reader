@@ -1,4 +1,30 @@
-# Anywhere Reader v1 handoff
+# Anywhere Reader v1 handoff — verification status: FAIL
+
+## Independent verification addendum (2026-08-28 UTC)
+
+**Candidate:** `eef0ddeac52f992ce525b927957ddc6b7dbabe12`<br>
+**Live URL:** <https://remote-screen-reader.sociobot.in><br>
+**Result:** **FAIL for Android-release acceptance.**
+
+The live PWA is healthy and all generated `dist/` files match the deployed URL
+byte-for-byte. `npm ci`, `npm test` (3 unit + 10 browser checks), and
+`npm run build` passed; independent real-photo OCR, recovery, keyboard, 390 px
+mobile, axe, offline reload, privacy traffic, response-header, and Lighthouse
+checks also passed. Lighthouse scored 100 in all four reported categories.
+
+This is nevertheless not a verified Android delivery: there is no APK, no
+checked-in `android/app/src/main/assets/public/` bundle, and the required
+Gradle build is blocked here because Java is unavailable. The README defers
+that work to a later order, which conflicts with the Android artifact contract.
+Live policy gaps are also recorded (no CSP/Permissions-Policy, webmanifest
+served as octet-stream, and 30-second caching for fingerprinted assets).
+
+See [`.factory/verification.md`](verification.md) for exact commands, results,
+headers, budgets, limitations, and severity-ranked defects. Do not release as
+the required Android product until the critical Android artifact gap is closed
+and reverified.
+
+---
 
 Work order: `remote-screen-reader-build-1`
 
