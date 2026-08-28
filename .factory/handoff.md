@@ -1,11 +1,16 @@
-# Anywhere Reader repair handoff — ready for static deployment
+# Anywhere Reader repair handoff — deployed
 
 **Work order:** `remote-screen-reader-repair-1`
 
 **Repaired from verifier candidate:** `eef0ddeac52f992ce525b927957ddc6b7dbabe12`
 
 **Completed:** 2026-08-28 UTC
+
 **Artifact class:** Android (Capacitor) plus the existing static PWA deployment
+
+**Repair commit:** `234f227dbd9df47d0cae1d2981828f8174182348`
+
+**Live URL:** <https://remote-screen-reader.sociobot.in>
 
 ## Release-blocker repairs
 
@@ -55,13 +60,34 @@ Evidence recorded in this repair environment:
   (5.65 kB gzip), and self-hosted fonts 66.4 kB raw. The OCR runtime and model
   remain lazy and are not part of first load.
 
-## Deployment and remaining verification
+## Deployment and live verification
 
-The required deployment command is `/opt/fleet/lib/deploy-static.sh
-remote-screen-reader dist`; it publishes the repaired PWA and its Azure Static
-Web Apps response policy. Post-deploy URL/header, identity, offline/update,
-desktop/mobile, accessibility, and Lighthouse evidence is to be recorded
-below after that command completes.
+`/opt/fleet/lib/deploy-static.sh remote-screen-reader dist` completed
+successfully (Azure deployment `d5885e3a-9de0-4909-89d4-3e834c09153f`).
+
+- Factory live verification: HTTP 200 in 927 ms, zero console/page errors,
+  correct title and `lang=en`, one `<h1>`, `<main>`, zero missing image alts,
+  and zero unlabeled buttons.
+- A fresh live Chromium pass exercised the actual photo → local OCR route,
+  checked the visible keyboard skip link, waited for service-worker control,
+  then reloaded offline successfully. It passed on desktop and a 390 × 844
+  mobile context. Axe found zero serious/critical violations in both; request
+  origins were exclusively `https://remote-screen-reader.sociobot.in`.
+- Live headers confirm the deployed response policy: CSP and
+  `Permissions-Policy: camera=(self), microphone=(), geolocation=(),
+  payment=(), usb=()` are present; `/manifest.webmanifest` is
+  `application/manifest+json`; the hashed application JS is
+  `Cache-Control: public, max-age=31536000, immutable`.
+- Deployment identity check: local and live `index.html` both SHA-256 to
+  `d5da62a48d53745bfcbb136270e0be7aa9f8d71118c70ab4e10c52ca9d7a5f31`.
+- Mobile Lighthouse: Performance 100, Accessibility 100, Best Practices 100,
+  SEO 100; FCP 1.2 s, LCP 1.2 s, total blocking time 0 ms, CLS 0.
+
+The service worker still uses its existing versioned cache, `skipWaiting`,
+`clients.claim`, cache-first local OCR/assets, network-first navigation, and
+the in-app update toast. Offline reload was exercised live; inducing a second
+production worker solely to observe the update toast is not required for the
+repair and was not performed.
 
 The debug APK is a verified QA package, not a factory-signed public release.
 Signing, artifact-store upload, and physical-device checks (rear camera,
