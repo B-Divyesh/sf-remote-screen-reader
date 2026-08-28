@@ -12,14 +12,16 @@ Live product: <https://remote-screen-reader.sociobot.in>
 - Offers pointer, touch, and keyboard-operable region controls plus useful focus/top/bottom/full-screen presets.
 - Saves a short reading history in IndexedDB, with clear and JSON export controls.
 - Installs as an offline PWA. The user can explicitly cache the 10.4 MB English OCR model.
-- Includes a Capacitor Android project skeleton under `android/`; a later factory work order builds and signs the APK.
+- Includes a versioned Capacitor Android web bundle under `android/` so a checkout packages the same reader that is deployed on the web.
 - Supports an optional one-time Pro license through the Sociobot billing API. Core reading, speech, zoom, and export are not paywalled.
 
 It does not control the target computer, reveal hidden or DRM-protected content, or replace a full accessibility-tree screen reader. OCR can be wrong; critical text should be verified.
 
 ## Develop
 
-Requires Node.js 20 or newer.
+Requires Node.js 20 or newer. Android packaging additionally requires JDK 21
+and Android SDK platform/build-tools 35 (`ANDROID_HOME` or `ANDROID_SDK_ROOT`
+must point to that SDK).
 
 ```sh
 npm install
@@ -33,20 +35,33 @@ The OCR runtime and English model are self-hosted in `public/ocr/`; there are no
 ```sh
 npm test
 npm run build
+npm run android:debug
 ```
 
 `npm test` runs unit coverage for OCR line comparison and Playwright flows on desktop Chromium and a 390 px mobile profile. The browser suite checks the real photo → local OCR → transcript path, consent behavior, legal pages, axe accessibility, console cleanliness, and an explicitly offline reload.
 
-The exact deployment command is `npm run build`. Static output lands in `dist/` with `dist/index.html` at its root.
+The exact static deployment command is `npm run build`. It type-checks and
+builds the web app, synchronizes it into Capacitor, and byte-compares every
+bundled file against `dist/`. Static output lands in `dist/` with
+`dist/index.html` at its root. `staticwebapp.config.json` is emitted with a
+same-origin CSP, camera-only Permissions-Policy, standard web-manifest MIME
+type, and immutable caching for fingerprinted Vite assets.
 
-To sync a fresh production build into the Android wrapper:
+`npm run android:debug` performs that production build, creates
+`android/app/build/outputs/apk/debug/app-debug.apk`, and verifies that the APK
+contains the app shell, OCR worker, and offline English model. The debug APK is
+a QA artifact; release signing and artifact publication use the factory
+keystore and deployment pipeline and no signing material is stored in this
+repository.
+
+To resynchronize without assembling an APK:
 
 ```sh
-npm run build
-npx cap sync android
+npm run sync:android
 ```
 
-The normalized Android application ID is `in.sociobot.remotescreenreader` because Android package names cannot contain the slug's hyphens. APK signing and distribution are intentionally out of scope for this static-deploy work order.
+The normalized Android application ID is `in.sociobot.remotescreenreader`
+because Android package names cannot contain the slug's hyphens.
 
 ## Product and privacy notes
 

@@ -1,74 +1,72 @@
-# Anywhere Reader v1 handoff — verification status: FAIL
+# Anywhere Reader repair handoff — ready for static deployment
 
-## Independent verification addendum (2026-08-28 UTC)
+**Work order:** `remote-screen-reader-repair-1`
 
-**Candidate:** `eef0ddeac52f992ce525b927957ddc6b7dbabe12`<br>
-**Live URL:** <https://remote-screen-reader.sociobot.in><br>
-**Result:** **FAIL for Android-release acceptance.**
+**Repaired from verifier candidate:** `eef0ddeac52f992ce525b927957ddc6b7dbabe12`
 
-The live PWA is healthy and all generated `dist/` files match the deployed URL
-byte-for-byte. `npm ci`, `npm test` (3 unit + 10 browser checks), and
-`npm run build` passed; independent real-photo OCR, recovery, keyboard, 390 px
-mobile, axe, offline reload, privacy traffic, response-header, and Lighthouse
-checks also passed. Lighthouse scored 100 in all four reported categories.
+**Completed:** 2026-08-28 UTC
+**Artifact class:** Android (Capacitor) plus the existing static PWA deployment
 
-This is nevertheless not a verified Android delivery: there is no APK, no
-checked-in `android/app/src/main/assets/public/` bundle, and the required
-Gradle build is blocked here because Java is unavailable. The README defers
-that work to a later order, which conflicts with the Android artifact contract.
-Live policy gaps are also recorded (no CSP/Permissions-Policy, webmanifest
-served as octet-stream, and 30-second caching for fingerprinted assets).
+## Release-blocker repairs
 
-See [`.factory/verification.md`](verification.md) for exact commands, results,
-headers, budgets, limitations, and severity-ranked defects. Do not release as
-the required Android product until the critical Android artifact gap is closed
-and reverified.
+1. **Android package is now reproducible and self-contained.** `npm run build`
+   type-checks, creates `dist/`, synchronizes Capacitor, prepares Android's
+   uncompressed OCR language asset, and byte-checks the tracked Android bundle.
+   The formerly ignored `android/app/src/main/assets/` and generated Capacitor
+   configuration are versioned. `npm run android:debug` then creates and checks
+   `android/app/build/outputs/apk/debug/app-debug.apk`.
+2. **Android OCR is package-safe.** Android's asset packager removes the `.gz`
+   suffix from gzip assets. The native bundle now contains the exact English
+   model decompressed as `eng.traineddata`, and the app uses Tesseract's
+   `gzip: false` only on Capacitor native platforms. The browser PWA retains the
+   smaller `.gz` download. The APK-content regression check verifies the shell,
+   OCR worker, and model names.
+3. **Static response policy is part of the deployment artifact.**
+   `public/staticwebapp.config.json` emits a same-origin CSP (with the sole
+   documented Sociobot license-verification origin), a camera-restricted
+   Permissions-Policy, standard `application/manifest+json` MIME type, and
+   one-year immutable caching for fingerprinted `/assets/*` files. The config
+   is checked by `npm test` and copied to `dist/` for Azure Static Web Apps.
 
----
-
-Work order: `remote-screen-reader-build-1`
-
-Completed: 2026-08-28
-
-Deploy: static PWA from `dist/`
-
-## What shipped
-
-- A complete camera/photo → selected region → local OCR → changed-line speech workflow.
-- Explicit in-context camera consent, permission/error recovery, photo fallback, keyboard-operable region corners, four region presets, stop/repeat speech, 24–52 px transcript zoom, and adjustable speech rate.
-- English Tesseract OCR worker, SIMD core, and 10.4 MB model self-hosted under `/ocr`; they are lazy-loaded only after a read or “Prepare offline reading.” No captured frame or recognized text leaves the device.
-- IndexedDB reading history, clear confirmation, and JSON export/import. The free product keeps five readings; all core accessibility, safety, speech, zoom, and data ownership controls remain free.
-- One-time ₹499 Pro license contract through `https://api.sociobot.in/api/v1/products/remote-screen-reader/...`: hosted buy link, returned-token storage and URL stripping, daily cached verification, offline optimistic unlock, paste-to-restore, revoked-license fallback, 50 local readings, and ten named local region presets.
-- Versioned service worker with complete first-install shell caching, cache-first local OCR/assets, network-first navigation, explicit offline fallback, and update toast. Manifest includes 192/512/maskable icons and standalone launch treatment.
-- Product-specific “pocket phosphor” pixel/demoscene system, original generated/hand-authored assets, responsive 390 px layout, reduced-motion behavior, legal pages, README, MIT license, and no analytics/runtime CDNs.
-- Capacitor 7 Android skeleton at `android/`, application ID `in.sociobot.remotescreenreader`, optional camera hardware declaration, runtime camera permission, dark Android theme, and product launcher/splash assets. Web assets were synced after the final build.
-
-## Run and verify
+## How to run and verify
 
 ```sh
-npm install
+npm ci
 npm test
 npm run build
-npx cap sync android
+# Requires JDK 21 and Android SDK platform/build-tools 35:
+ANDROID_HOME=/path/to/android-sdk npm run android:debug
 ```
 
-The deployment command is exactly `npm run build`; it produces `dist/index.html` at the required root.
+Evidence recorded in this repair environment:
 
-Verification performed against the production build:
+- Clean `npm ci`: 164 packages audited, 0 vulnerabilities.
+- `npm test`: release-policy regression check, 3 Vitest unit tests, and 10
+  Playwright checks passed. Playwright exercised desktop Chromium and Pixel 5
+  / 390 px mobile, real local photo OCR, consent/recovery, keyboard/focus,
+  axe serious/critical rules, legal routes, and an offline reload.
+- `npm run build`: TypeScript check, Vite production build, Capacitor sync, and
+  Android bundle byte comparison passed (22 unchanged `dist` files plus the
+  intentionally decompressed Android language model).
+- `npm run android:debug`: Gradle `assembleDebug` passed with JDK 21 and SDK
+  35. The APK-content check passed; its SHA-256 was
+  `fba5da51cdab4865ca1a4535de4a504578d561b88ebd95fab2525d5ab9d0ab03`.
+- Production first-load output: JS 40.11 kB (14.76 kB gzip), CSS 21.18 kB
+  (5.65 kB gzip), and self-hosted fonts 66.4 kB raw. The OCR runtime and model
+  remain lazy and are not part of first load.
 
-- `npm test`: 3/3 Vitest unit tests and 10/10 Playwright tests passed across desktop Chromium and Pixel 5/390 px profiles.
-- Real integration test: uploaded a screen fixture, loaded the self-hosted OCR worker/model, recognized “ACCESS PANEL / SYSTEM READY,” and produced the transcript on both profiles.
-- Offline test: waited for service-worker control, disabled the browser network with Playwright, reloaded successfully, and displayed the offline state on both profiles.
-- Axe: no serious/critical violations; full default axe rules (including contrast) passed on home, privacy, and terms routes.
-- Factory `verify-url.sh`: 200 response, 580 ms load, zero console/page errors, title and `lang=en`, one `<h1>`, `<main>` present, zero missing alt attributes, zero unlabeled buttons.
-- Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 1.2 s, LCP 1.5 s, total blocking time 0 ms, CLS 0.
-- Bundles: initial JS 32.39 KB (11.88 KB gzip), CSS 21.18 KB (5.65 KB gzip), two requested WOFF2 font files total 38 KB, mobile hero WebP 19 KB, desktop hero WebP 52 KB. OCR is a user-triggered lazy path and is not part of first load.
-- Evidence is retained in `.factory/evidence/` (`verify.json`, desktop/mobile screenshots, and `lighthouse.json`).
+## Deployment and remaining verification
 
-## Known gaps and next steps
+The required deployment command is `/opt/fleet/lib/deploy-static.sh
+remote-screen-reader dist`; it publishes the repaired PWA and its Azure Static
+Web Apps response policy. Post-deploy URL/header, identity, offline/update,
+desktop/mobile, accessibility, and Lighthouse evidence is to be recorded
+below after that command completes.
 
-- This static-deploy work order intentionally stops at the Capacitor project skeleton. The later Android work order must build/sign the APK with the factory keystore, test TalkBack and physical rear-camera behavior on representative Android devices, upload the artifact, and publish its SHA-256.
-- V1 ships English OCR only. Additional languages require locally hosted traineddata, a language picker, and offline-storage disclosure.
-- OCR and browser speech synthesis remain dependent on lighting, display glare, device performance, and installed system voices. The UI warns users to verify critical text.
-- The factory must register `remote-screen-reader` and its ₹499 one-time price in the Sociobot production billing engine before checkout can complete. No product ID or payment-provider secret is embedded here.
-- Protected/DRM video may appear blank by platform design; the product deliberately does not bypass that restriction.
+The debug APK is a verified QA package, not a factory-signed public release.
+Signing, artifact-store upload, and physical-device checks (rear camera,
+TalkBack, back gesture, and a real service-worker update transition) require
+the factory keystore/device workflow; no signing material or user data is in
+the repository. English-only OCR, OCR accuracy limits, protected-content
+limits, and the optional billing-product registration remain as documented in
+the brief and terms.

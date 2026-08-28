@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Anywhere Reader app icon">
+  <rect width="512" height="512" fill="#090c0b"/>
+  <path fill="#18211c" stroke="#d8ff3e" stroke-width="16" d="M72 88h368v272H72z"/>
+  <path fill="#55e6d2" d="M112 142h200v28H112zm0 58h280v28H112zm0 58h164v28H112z"/>
+  <path fill="#d8ff3e" d="M100 116h52v12h-40v40h-12zm312 0h-52v12h40v40h12zM100 332h52v-12h-40v-40h-12zm312 0h-52v-12h40v-40h12z"/>
+  <path fill="#f5f7dc" d="M124 400h24v40h-24zm48-22h24v62h-24zm48 38h24v24h-24zm48-56h24v80h-24zm48 28h24v52h-24zm48-12h24v64h-24z"/>
+</svg>

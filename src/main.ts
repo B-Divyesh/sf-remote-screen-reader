@@ -1,4 +1,5 @@
 import './style.css';
+import { Capacitor } from '@capacitor/core';
 import { CHECKOUT_URL, captureReturnedLicense, hasOptimisticUnlock, saveLicense, verifyLicense } from './license';
 import { DEFAULT_REGION, changedLines, clampRegion, clearReadings, getReadings, saveReading, type Reading, type Region } from './reader';
 
@@ -221,6 +222,9 @@ async function initWorker(): Promise<OcrWorker> {
     workerPath: '/ocr/worker.min.js',
     corePath: '/ocr/tesseract-core.wasm.js',
     langPath: '/ocr/lang',
+    // AAPT expands .gz files and removes their suffix inside an APK. The
+    // Android bundle therefore carries the same language data uncompressed.
+    gzip: !Capacitor.isNativePlatform(),
     logger: info => {
       if (typeof info.progress === 'number') setProgress(true, info.progress, humanProgress(info.status));
     },

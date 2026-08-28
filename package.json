@@ -5,10 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run prepare:ocr && tsc --noEmit && vite build",
+    "build": "npm run build:web && npm run sync:android && npm run verify:android",
+    "build:web": "npm run prepare:ocr && tsc --noEmit && vite build",
     "prepare:ocr": "node scripts/copy-ocr.mjs",
+    "sync:android": "npx cap sync android && node scripts/prepare-android-language.mjs",
+    "verify:release-config": "node scripts/verify-release-config.mjs",
+    "verify:android": "node scripts/verify-android-bundle.mjs",
+    "android:debug": "npm run build && (cd android && ./gradlew assembleDebug) && node scripts/verify-android-apk.mjs",
     "preview": "vite preview",
-    "test": "vitest run && playwright test",
+    "test": "npm run verify:release-config && vitest run && playwright test",
     "test:unit": "vitest run",
     "test:e2e": "playwright test"
   },

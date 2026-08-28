@@ -92,10 +92,7 @@ lint/tmp/
 # Cordova plugins for Capacitor
 capacitor-cordova-android-plugins
 
-# Copied web assets
-app/src/main/assets/public
-
-# Generated Config files
-app/src/main/assets/capacitor.config.json
-app/src/main/assets/capacitor.plugins.json
+# The Capacitor web bundle and generated Capacitor configuration are intentionally
+# versioned. A checkout must be packageable as the Android artifact without an
+# undocumented extra sync step.
 app/src/main/res/xml/config.xml
