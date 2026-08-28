@@ -1,0 +1,8 @@
+{
+  "asset": "reader-bridge.png",
+  "generated_at": "2026-08-28",
+  "generator": "Azure OpenAI image generation via /opt/fleet/lib/gen-image.sh (factory-image)",
+  "prompt": "Editorial demoscene pixel art, close-up oblique view of a small dark smartphone floating in front of an anonymous desktop monitor, the phone camera frame selects several luminous abstract pixel rows and those rows transform into a compact audio waveform, black-green CRT world, phosphor lime and cool cyan with small warm amber accents, hard 1-bit dither shadows, crisp block pixels, purposeful accessibility instrument, dramatic screen glow, composition with clear empty dark space at left, no person, no hands, no readable text, no letters, no logos, no brands, no cloud, no robots, no watermark, no gradients, no photorealism",
+  "review": "Accepted: clear remote optical reading concept, coherent palette, no people, brands, readable text artifacts, unintended symbols, or visible seams.",
+  "license": "Original generated asset released with this project under the MIT License"
+}

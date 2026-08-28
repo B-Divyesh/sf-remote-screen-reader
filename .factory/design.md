@@ -29,7 +29,7 @@ Status is always paired with a word or icon, never conveyed by color alone. Focu
 
 ## Type
 
-- Display and labels: `"Courier Prime"`, a self-hosted OFL monospace, bold where needed. Its squared rhythm carries the instrument voice and keeps changing OCR counts stable.
+- Display and labels: `"Courier Prime"`, a self-hosted OFL monospace supplied by Fontsource, bold where needed. Its squared rhythm carries the instrument voice and keeps changing OCR counts stable. The OFL license is retained at `assets/fonts/CourierPrime-OFL.txt`.
 - Reading and controls: system UI (`system-ui`, Roboto, sans-serif), chosen for immediate Android legibility and zero font latency.
 - Scale: 13px metadata, 16px labels, 18px body, 24px section title, clamp(36px–64px) hero. OCR output begins at 26px and can be enlarged to 48px. Long copy is limited to 68 characters with 1.55 leading.
 
@@ -51,8 +51,7 @@ Transitions run 160–240ms and only animate opacity or transform. The capture r
 
 ## Asset plan and provenance
 
-- Hero illustration: an original generated pixel-art scene of a phone framing a computer screen, with abstract text blocks turning into an audio waveform. It explains the remote optical workflow; no people, brands, readable text, cloud symbols, or implication of controlling the target. Source and prompt sidecar live in `public/assets/src/`; optimized WebP is shipped.
+- Hero illustration: an original generated pixel-art scene of a phone framing a computer screen, with abstract text blocks turning into an audio waveform. It explains the remote optical workflow; no people, brands, readable text, cloud symbols, or implication of controlling the target. Source and prompt sidecar live in `assets/src/`; optimized WebP is shipped.
 - Icons, reticles, checker textures, waveform, and app mark are hand-authored SVG/CSS under this project and are original under the repository MIT license.
 - Image prompt sheet: “Editorial demoscene pixel art, close-up oblique view of a small dark smartphone held in front of an anonymous desktop monitor, the phone camera frame selects several luminous abstract pixel rows and those rows transform into a compact audio waveform, black-green CRT world, phosphor lime and cool cyan with small warm amber accents, hard 1-bit dither shadows, crisp block pixels, purposeful accessibility instrument, dramatic screen glow, no person, no hands, no readable text, no letters, no logos, no brands, no cloud, no robots, no watermark, no gradients, no photorealism.”
 - Generation: Azure OpenAI image generation through the factory `gen-image.sh`, 2026-08-28. Generated assets are original to Anywhere Reader; the footer discloses AI-assisted illustration.
-
