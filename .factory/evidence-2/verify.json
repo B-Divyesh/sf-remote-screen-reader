@@ -1,0 +1,14 @@
+{
+  "url": "https://remote-screen-reader.sociobot.in",
+  "loadMs": 623,
+  "errors": [],
+  "a11y": {
+    "title": "Anywhere Reader — hear any visible screen",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 2280
+  }
+}
