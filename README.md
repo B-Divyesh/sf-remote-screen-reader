@@ -4,6 +4,8 @@ Anywhere Reader is a private phone-hosted fallback reader for blind and low-visi
 
 Live product: <https://remote-screen-reader.sociobot.in>
 
+Android release: [Anywhere Reader 1.0.1 APK](https://github.com/B-Divyesh/sf-remote-screen-reader/releases/download/v1.0.1/anywhere-reader-1.0.1.apk) · [SHA-256](release/anywhere-reader-1.0.1.apk.sha256)
+
 ## What v1 does
 
 - Uses a live rear camera or a chosen photo; permission is requested only after explicit consent.
@@ -36,6 +38,7 @@ The OCR runtime and English model are self-hosted in `public/ocr/`; there are no
 npm test
 npm run build
 npm run android:debug
+npm run android:check
 ```
 
 `npm test` runs unit coverage for OCR line comparison and Playwright flows on desktop Chromium and a 390 px mobile profile. The browser suite checks the real photo → local OCR → transcript path, consent behavior, legal pages, axe accessibility, console cleanliness, and an explicitly offline reload.
@@ -50,9 +53,15 @@ type, and immutable caching for fingerprinted Vite assets.
 `npm run android:debug` performs that production build, creates
 `android/app/build/outputs/apk/debug/app-debug.apk`, and verifies that the APK
 contains the app shell, OCR worker, and offline English model. The debug APK is
-a QA artifact; release signing and artifact publication use the factory
-keystore and deployment pipeline and no signing material is stored in this
-repository.
+a QA artifact. `npm run android:check` also runs Android unit tests and lint.
+
+`npm run android:release` requires `ANDROID_KEYSTORE_PATH`,
+`ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD`.
+It refuses an unsigned release, verifies APK Signature Scheme v2, rejects the
+standard Android debug certificate, and prints the package SHA-256. Signing
+material is never stored in this repository. Release APKs and signing recovery
+material are kept in the factory's private artifact channel; public APKs and
+checksums are attached to the matching GitHub release.
 
 To resynchronize without assembling an APK:
 

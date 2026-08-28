@@ -35,7 +35,7 @@ Status is always paired with a word or icon, never conveyed by color alone. Focu
 
 ## Spacing and form
 
-The base unit is 4px, with an 8px working rhythm. Main gaps are 16/24/32/48px. Touch targets are at least 48px. Corners are 0–4px; panels use a one-pixel grid border and a 4px stepped shadow instead of soft elevation. Desktop uses a 12-column field; capture and transcript become two unequal columns. At 390px they stack and nonessential coordinate labels disappear.
+The base unit is 4px, with an 8px working rhythm. Main gaps are 16/24/32/48px. Touch targets are at least 44px, with primary controls at least 48px. Corners are 0–4px; panels use a one-pixel grid border and a 4px stepped shadow instead of soft elevation. Desktop uses a 12-column field; capture and transcript become two unequal columns. At 390px they stack and nonessential coordinate labels disappear.
 
 ## Interaction grammar
 
@@ -44,6 +44,7 @@ The base unit is 4px, with an 8px working rhythm. Main gaps are 16/24/32/48px. T
 - The region selector is a real four-handle rectangle over the preview. Handles are keyboard operable with arrow keys (Shift for larger steps). “Whole screen” resets it.
 - The transcript emphasizes only changed lines, with previous results retained locally in a short, user-clearable history. Zoom changes only output scale, not app chrome.
 - Paid Pro adds convenience only: longer local history and JSON export/import. Camera, OCR, speech, zoom, changed-line reading, and safety remain free.
+- The web landing surface leads with the signed Android package, its visible SHA-256, and a secondary web-reader path. Inside the native shell, the redundant package download is removed.
 
 ## Motion
 

@@ -1,7 +1,7 @@
 {
   "name": "remote-screen-reader",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,7 +11,10 @@
     "sync:android": "npx cap sync android && node scripts/prepare-android-language.mjs",
     "verify:release-config": "node scripts/verify-release-config.mjs",
     "verify:android": "node scripts/verify-android-bundle.mjs",
-    "android:debug": "npm run build && (cd android && ./gradlew assembleDebug) && node scripts/verify-android-apk.mjs",
+    "android:debug": "npm run build && (cd android && ./gradlew assembleDebug) && node scripts/verify-android-apk.mjs debug",
+    "android:release": "npm run build && (cd android && ./gradlew assembleRelease) && node scripts/verify-android-apk.mjs release",
+    "android:check": "npm run build && (cd android && ./gradlew testDebugUnitTest lintDebug)",
+    "verify:live-release": "node scripts/verify-live-release.mjs",
     "preview": "vite preview",
     "test": "npm run verify:release-config && vitest run && playwright test",
     "test:unit": "vitest run",

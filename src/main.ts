@@ -4,6 +4,8 @@ import { CHECKOUT_URL, captureReturnedLicense, hasOptimisticUnlock, saveLicense,
 import { DEFAULT_REGION, changedLines, clampRegion, clearReadings, getReadings, saveReading, type Reading, type Region } from './reader';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
+const APK_DOWNLOAD_URL = 'https://github.com/B-Divyesh/sf-remote-screen-reader/releases/download/v1.0.1/anywhere-reader-1.0.1.apk';
+const APK_CHECKSUM_URL = `${APK_DOWNLOAD_URL}.sha256`;
 
 function icon(name: 'eye' | 'sound' | 'lock' | 'camera'): string {
   const paths = {
@@ -57,7 +59,8 @@ function renderHome(): void {
       <div class="hero-copy"><p class="eyebrow"><span class="status-dot"></span> PRIVATE OPTICAL READER // ANDROID PWA</p>
         <h1 id="heroTitle">Hear the screen.<br><span>Touch nothing on it.</span></h1>
         <p class="lede">Point your phone at a locked-down computer, select the part that changed, and hear it aloud. No install on the target. No cloud. No account.</p>
-        <div class="hero-actions"><a class="primary" href="#reader">Start reading <span aria-hidden="true">↓</span></a><a class="text-link" href="#how">How it works</a></div>
+        <div class="hero-actions"><a class="primary" id="downloadAndroid" href="${APK_DOWNLOAD_URL}" aria-describedby="androidReleaseMeta">Download Android APK</a><a class="secondary" href="#reader">Try the web reader <span aria-hidden="true">↓</span></a><a class="text-link" href="#how">How it works</a></div>
+        <p class="android-release-meta" id="androidReleaseMeta"><span>Android 6+</span><span>Release signed</span><a class="checksum-link" id="apkChecksum" href="${APK_CHECKSUM_URL}">SHA-256 checksum</a><code id="apkDigest">Checking release…</code></p>
         <ul class="proof-list" aria-label="Product guarantees"><li>${icon('lock')} On-device OCR</li><li>${icon('sound')} Changed lines only</li><li>${icon('eye')} Large text zoom</li></ul>
       </div>
       <figure class="hero-visual"><picture><source srcset="/assets/reader-bridge-768.webp 768w, /assets/reader-bridge.webp 1536w" sizes="(max-width: 900px) calc(100vw - 40px), 52vw" type="image/webp"><img src="/assets/reader-bridge.webp" width="1536" height="1024" fetchpriority="high" alt="Pixel art of a phone framing text rows on a computer screen and turning them into an audio waveform"></picture><figcaption><span>SCREEN</span><span>REGION 08:18—92:76</span><span>VOICE</span></figcaption></figure>
@@ -151,7 +154,34 @@ function setupHome(): void {
   updateOnlineState();
   window.addEventListener('online', updateOnlineState);
   window.addEventListener('offline', updateOnlineState);
-  updateZoom(); updateRate(); updateSelection(); renderHistory(); setupLicense(); setupInstall(); registerServiceWorker();
+  updateZoom(); updateRate(); updateSelection(); renderHistory(); setupLicense(); setupInstall(); setupAndroidRelease(); registerServiceWorker();
+}
+
+interface AndroidRelease {
+  version: string;
+  downloadUrl: string;
+  checksumUrl: string;
+  sha256: string;
+}
+
+async function setupAndroidRelease(): Promise<void> {
+  const metadata = byId('androidReleaseMeta');
+  if (Capacitor.isNativePlatform()) {
+    byId<HTMLAnchorElement>('downloadAndroid').hidden = true;
+    metadata.hidden = true;
+    return;
+  }
+  try {
+    const response = await fetch('/android-release.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Release metadata unavailable');
+    const release = await response.json() as AndroidRelease;
+    if (!/^[a-f0-9]{64}$/.test(release.sha256) || /^0+$/.test(release.sha256)) throw new Error('Release checksum unavailable');
+    byId<HTMLAnchorElement>('downloadAndroid').href = release.downloadUrl;
+    byId<HTMLAnchorElement>('apkChecksum').href = release.checksumUrl;
+    byId('apkDigest').textContent = release.sha256;
+  } catch {
+    byId('apkDigest').textContent = 'Checksum will appear when the release is published.';
+  }
 }
 
 async function startCamera(): Promise<void> {

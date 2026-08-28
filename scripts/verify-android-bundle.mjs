@@ -21,7 +21,7 @@ assert(existsSync(join(dist, 'index.html')), 'dist/index.html is missing; run th
 assert(existsSync(join(bundled, 'index.html')), 'the checked-in Android web bundle is missing');
 
 const androidLanguageGzip = 'ocr/lang/eng.traineddata.gz';
-const distFiles = files(dist).filter(path => !['staticwebapp.config.json', androidLanguageGzip].includes(relative(dist, path)));
+const distFiles = files(dist).filter(path => !['staticwebapp.config.json', 'android-release.json', androidLanguageGzip].includes(relative(dist, path)));
 for (const source of distFiles) {
   const target = join(bundled, relative(dist, source));
   assert(existsSync(target), `missing bundled file ${relative(dist, source)}`);

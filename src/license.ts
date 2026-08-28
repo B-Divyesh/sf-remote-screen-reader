@@ -3,13 +3,15 @@ const TOKEN_KEY = `sb_license:${SLUG}`;
 const VERDICT_KEY = `${TOKEN_KEY}:verdict`;
 const API = 'https://api.sociobot.in/api/v1';
 
-interface Verdict { valid: boolean; checkedAt: number; reason?: string }
+interface Verdict { valid: boolean; checkedAt: number; token: string; reason?: string }
 
 export function captureReturnedLicense(): void {
   const url = new URL(location.href);
   const token = url.searchParams.get('license');
   if (!token) return;
-  localStorage.setItem(TOKEN_KEY, token);
+  const normalized = token.trim();
+  if (normalized !== localStorage.getItem(TOKEN_KEY)) localStorage.removeItem(VERDICT_KEY);
+  localStorage.setItem(TOKEN_KEY, normalized);
   url.searchParams.delete('license');
   history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
 }
@@ -20,10 +22,14 @@ export function saveLicense(token: string): void {
 }
 
 export function hasOptimisticUnlock(): boolean {
-  if (!localStorage.getItem(TOKEN_KEY)) return false;
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return false;
   const saved = localStorage.getItem(VERDICT_KEY);
   if (!saved) return true;
-  try { return (JSON.parse(saved) as Verdict).valid; } catch { return true; }
+  try {
+    const verdict = JSON.parse(saved) as Verdict;
+    return verdict.token === token ? verdict.valid : true;
+  } catch { return true; }
 }
 
 export async function verifyLicense(force = false): Promise<boolean> {
@@ -31,14 +37,18 @@ export async function verifyLicense(force = false): Promise<boolean> {
   if (!token) return false;
   const saved = localStorage.getItem(VERDICT_KEY);
   if (!force && saved) {
-    const verdict = JSON.parse(saved) as Verdict;
-    if (Date.now() - verdict.checkedAt < 86_400_000) return verdict.valid;
+    try {
+      const verdict = JSON.parse(saved) as Verdict;
+      if (verdict.token === token && Date.now() - verdict.checkedAt < 86_400_000) return verdict.valid;
+    } catch {
+      localStorage.removeItem(VERDICT_KEY);
+    }
   }
   try {
     const response = await fetch(`${API}/products/${SLUG}/verify?license=${encodeURIComponent(token)}`);
     if (!response.ok) throw new Error('Verification unavailable');
     const result = await response.json() as { valid: boolean; reason?: string };
-    localStorage.setItem(VERDICT_KEY, JSON.stringify({ valid: result.valid, reason: result.reason, checkedAt: Date.now() }));
+    localStorage.setItem(VERDICT_KEY, JSON.stringify({ valid: result.valid, reason: result.reason, checkedAt: Date.now(), token }));
     return result.valid;
   } catch {
     return hasOptimisticUnlock();
