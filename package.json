@@ -14,6 +14,7 @@
     "android:debug": "npm run build && (cd android && ./gradlew assembleDebug) && node scripts/verify-android-apk.mjs debug",
     "android:release": "npm run build && (cd android && ./gradlew assembleRelease) && node scripts/verify-android-apk.mjs release",
     "android:check": "npm run build && (cd android && ./gradlew testDebugUnitTest lintDebug)",
+    "verify:live-browser": "node scripts/verify-live-browser.mjs",
     "verify:live-release": "node scripts/verify-live-release.mjs",
     "preview": "vite preview",
     "test": "npm run verify:release-config && vitest run && playwright test",
