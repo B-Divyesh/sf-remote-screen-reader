@@ -121,6 +121,10 @@ h3 { font-size: 1.25rem; letter-spacing: -.02em; }
 .region-presets > span { margin-right: 4px; color: var(--muted); font: 12px var(--mono); }
 .region-presets button { min-height: 44px; padding: 8px 12px; color: var(--muted); background: var(--panel-high); border: 1px solid var(--grid); font: 13px var(--mono); }
 .region-presets button[aria-pressed=true] { color: var(--signal-ink); background: var(--signal); border-color: var(--signal); }
+.pro-region-tools { margin: 0 0 16px; padding: 14px; display: grid; grid-template-columns: auto minmax(120px,1fr); align-items: center; gap: 10px; border: 1px dashed var(--cyan); }
+.pro-region-tools label { color: var(--cyan); font: 700 12px var(--mono); }
+.pro-region-tools input, .pro-region-tools select { min-width: 0; height: 44px; padding: 8px 10px; color: var(--ink); background: var(--void); border: 1px solid #687b6f; }
+.pro-region-tools p { grid-column: 1/-1; margin: 0; color: var(--muted); font-size: 13px; }
 
 .read-controls { display: grid; grid-template-columns: 1fr 56px; gap: 12px; margin-bottom: 16px; }
 .hold-button { min-height: 84px; padding: 12px 20px; display: flex; align-items: center; gap: 16px; text-align: left; color: var(--signal-ink); background: var(--signal); box-shadow: 5px 5px 0 #648004; }
@@ -153,6 +157,7 @@ input[type=range] { accent-color: var(--signal); min-height: 44px; width: 100%; 
 .result-actions { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 12px; }
 .text-button { min-height: 44px; padding: 8px 0; color: var(--cyan); background: transparent; text-decoration: underline; text-underline-offset: 5px; font: 700 14px var(--mono); }
 .text-button.danger { color: var(--danger); }
+.import-button { display: inline-flex; align-items: center; cursor: pointer; }
 .reader-message { margin: 24px 0 0; padding: 16px 20px; color: var(--danger); border-left: 4px solid var(--danger); background: #231412; }
 .reader-message.success { color: var(--success); border-color: var(--success); background: #102016; }
 .offline-prepare { margin-top: 32px; padding: 20px; display: flex; justify-content: space-between; align-items: center; gap: 24px; border: 1px dashed #52665a; }
@@ -160,7 +165,6 @@ input[type=range] { accent-color: var(--signal); min-height: 44px; width: 100%; 
 .offline-prepare svg { flex: 0 0 auto; width: 30px; height: 30px; color: var(--cyan); }
 .offline-prepare p { margin: 3px 0 0; color: var(--muted); font-size: 14px; }
 
-.how-section { content-visibility: auto; contain-intrinsic-size: auto 900px; }
 .signal-path { counter-reset: steps; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); list-style: none; border-top: 1px solid var(--grid); border-bottom: 1px solid var(--grid); }
 .signal-path li { min-height: 330px; padding: 24px clamp(20px, 3vw, 40px) 32px; position: relative; border-right: 1px solid var(--grid); }
 .signal-path li:last-child { border-right: 0; }
@@ -180,14 +184,13 @@ input[type=range] { accent-color: var(--signal); min-height: 44px; width: 100%; 
 .safety-note h3 { margin: 2px 0 8px; }
 .safety-note p { margin-bottom: 0; color: #e0d6b2; }
 
-.history-section { content-visibility: auto; contain-intrinsic-size: auto 600px; }
 .history-list { border-top: 1px solid var(--grid); }
 .history-list article { min-height: 100px; display: grid; grid-template-columns: 190px 1fr 140px; align-items: center; gap: 24px; padding: 20px 0; border-bottom: 1px solid var(--grid); }
 .history-list time, .history-list span { color: var(--muted); font: 13px var(--mono); }
 .history-list p { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .history-empty { padding: 48px 0; color: var(--muted); }
 
-.pro-section { content-visibility: auto; contain-intrinsic-size: auto 800px; display: grid; grid-template-columns: 1fr minmax(340px, 480px); gap: clamp(48px, 10vw, 140px); align-items: center; }
+.pro-section { display: grid; grid-template-columns: 1fr minmax(340px, 480px); gap: clamp(48px, 10vw, 140px); align-items: center; }
 .pro-copy > p:not(.eyebrow), .pro-copy li { color: var(--muted); }
 .pro-copy ul { padding-left: 1.2em; }
 .pro-copy li { padding: 5px 0; }

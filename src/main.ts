@@ -81,6 +81,7 @@ function renderHome(): void {
           </div>
           <p class="keyboard-hint">Move a corner with arrow keys. Hold Shift for larger steps.</p>
           <div class="region-presets" aria-label="Region presets"><span>Frame:</span><button data-region="focus" aria-pressed="true">Focus box</button><button data-region="top">Top half</button><button data-region="bottom">Bottom half</button><button data-region="whole">Whole screen</button></div>
+          <div class="pro-region-tools" id="proRegionTools" hidden><label for="savedRegions">Pro saved regions</label><select id="savedRegions"><option value="">Choose a saved region</option></select><label class="visually-hidden" for="regionName">Region name</label><input id="regionName" maxlength="30" placeholder="Region name"><button class="secondary compact" id="saveRegion">Save current frame</button><p id="regionMessage" role="status"></p></div>
           <div class="button-row"><button class="secondary" id="toggleCamera">Stop camera</button><label class="secondary file-button" for="photoInput2">Choose photo</label><input class="visually-hidden" id="photoInput2" type="file" accept="image/*" capture="environment"></div>
         </section>
 
@@ -89,7 +90,7 @@ function renderHome(): void {
           <div class="progress-wrap" id="progressWrap" hidden><div class="progress-track"><span id="progressBar"></span></div><p id="progressText">Loading on-device reader…</p></div>
           <div class="transcript" id="transcript" tabindex="0" aria-live="polite" aria-busy="false"><div class="empty-transcript" id="emptyTranscript">${icon('sound')}<p>Recognized words appear here.</p><span>On the next reading, only new or changed lines are spoken.</span></div><div id="changedOutput"></div><details id="fullDetails" hidden><summary>Show all recognized text</summary><p id="fullOutput"></p></details></div>
           <div class="output-settings"><label for="textZoom">Text size <output id="zoomValue">32px</output></label><input id="textZoom" type="range" min="24" max="52" value="32" step="2"><label for="speechRate">Speech rate <output id="rateValue">1×</output></label><input id="speechRate" type="range" min="0.6" max="1.6" value="1" step="0.1"></div>
-          <div class="result-actions"><button class="text-button" id="repeatSpeech">Repeat</button><button class="text-button" id="copyText">Copy text</button><button class="text-button" id="exportHistory">Export history</button></div>
+          <div class="result-actions"><button class="text-button" id="repeatSpeech">Repeat</button><button class="text-button" id="copyText">Copy text</button><button class="text-button" id="exportHistory">Export history</button><label class="text-button import-button" for="importHistory">Import history</label><input class="visually-hidden" id="importHistory" type="file" accept="application/json,.json"></div>
         </section>
       </div>
       <div class="reader-message" id="readerMessage" role="alert" hidden></div>
@@ -103,7 +104,7 @@ function renderHome(): void {
 
     <section class="history-section" aria-labelledby="historyTitle"><div class="section-heading"><div><p class="eyebrow">LOCAL LOG // THIS DEVICE</p><h2 id="historyTitle">Recent readings.</h2></div><div class="button-row"><button class="text-button" id="refreshHistory">Refresh</button><button class="text-button danger" id="clearHistory">Clear history</button></div></div><div id="historyList" class="history-list"><p class="history-empty">Nothing saved yet. Your five most recent free readings will appear here.</p></div></section>
 
-    <section class="pro-section" id="pro" aria-labelledby="proTitle"><div class="pro-copy"><p class="eyebrow">OPTIONAL UNLOCK // ONE TIME</p><h2 id="proTitle">Keep the reader free.<br>Make repeat work faster.</h2><p>Core camera reading, changed-line speech, zoom, and history export are always free. Pro adds 50-item local history and saved region presets for repeated workstations.</p><ul><li>50 local readings instead of 5</li><li>Save and name up to 10 reading regions</li><li>No account and no recurring speech quota</li></ul></div><div class="price-terminal"><div><span>ANYWHERE READER PRO</span><span id="licenseState">NOT UNLOCKED</span></div><p class="price"><sup>₹</sup>499 <small>one time</small></p><a class="primary wide" href="${CHECKOUT_URL}">Buy Pro securely</a><p class="merchant">Checkout and refunds by Sociobot/Dodo, merchant of record.</p><details><summary>Have a license? Restore it</summary><label for="licenseInput">License token</label><input id="licenseInput" type="text" autocomplete="off" spellcheck="false"><button class="secondary" id="restoreLicense">Verify license</button><p id="licenseMessage" role="status"></p></details><p class="legal-links"><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></p></div></section>
+    <section class="pro-section" id="pro" aria-labelledby="proTitle"><div class="pro-copy"><p class="eyebrow">OPTIONAL UNLOCK // ONE TIME</p><h2 id="proTitle">Keep the reader free.<br>Make repeat work faster.</h2><p>Core camera reading, changed-line speech, zoom, and history export are always free. Pro adds 50-item local history and saved region presets for repeated workstations.</p><ul><li>50 local readings instead of 5</li><li>Save and name up to 10 reading regions</li><li>No account and no recurring speech quota</li></ul></div><div class="price-terminal"><div><span>ANYWHERE READER PRO</span><span id="licenseState">NOT UNLOCKED</span></div><p class="price"><sup>₹</sup>499 <small>one time</small></p><a class="primary wide" href="${CHECKOUT_URL}">Buy Pro securely</a><p class="merchant">Checkout and refunds by Sociobot/Dodo, merchant of record.</p><details><summary>Have a license? Restore it</summary><label for="licenseInput">License token</label><input id="licenseInput" type="text" autocomplete="off" spellcheck="false"><button class="secondary" id="restoreLicense" aria-label="Verify pasted license">Verify license</button><p id="licenseMessage" role="status"></p></details><p class="legal-links"><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></p></div></section>
   </main>${footer()}
   <div class="update-toast" id="updateToast" role="status" hidden><span>A fresh reader is ready.</span><button id="applyUpdate">Update now</button></div>`;
   setupHome();
@@ -130,10 +131,13 @@ function setupHome(): void {
   byId('repeatSpeech').addEventListener('click', () => speak(lastSpoken));
   byId('copyText').addEventListener('click', copyText);
   byId('exportHistory').addEventListener('click', exportHistory);
+  byId<HTMLInputElement>('importHistory').addEventListener('change', importHistory);
   byId('prepareOffline').addEventListener('click', prepareOffline);
   byId('refreshHistory').addEventListener('click', renderHistory);
   byId('clearHistory').addEventListener('click', confirmClearHistory);
   byId('restoreLicense').addEventListener('click', restoreLicense);
+  byId('saveRegion').addEventListener('click', saveCurrentRegion);
+  byId<HTMLSelectElement>('savedRegions').addEventListener('change', loadSavedRegion);
   byId<HTMLInputElement>('textZoom').addEventListener('input', updateZoom);
   byId<HTMLInputElement>('speechRate').addEventListener('input', updateRate);
   document.querySelectorAll<HTMLButtonElement>('[data-region]').forEach(button => button.addEventListener('click', () => setPreset(button.dataset.region!)));
@@ -141,6 +145,8 @@ function setupHome(): void {
     button.addEventListener('keydown', event => moveCorner(event, button.dataset.corner!));
     button.addEventListener('pointerdown', event => beginCornerDrag(event, button.dataset.corner!));
   });
+  const savedRate = localStorage.getItem('reader:speech-rate');
+  if (savedRate) byId<HTMLInputElement>('speechRate').value = savedRate;
   updateOnlineState();
   window.addEventListener('online', updateOnlineState);
   window.addEventListener('offline', updateOnlineState);
@@ -403,6 +409,63 @@ async function exportHistory(): Promise<void> {
   const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `anywhere-reader-${new Date().toISOString().slice(0, 10)}.json`; link.click(); URL.revokeObjectURL(link.href);
 }
 
+async function importHistory(event: Event): Promise<void> {
+  const input = event.currentTarget as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  try {
+    const parsed = JSON.parse(await file.text()) as { readings?: Reading[] };
+    if (!Array.isArray(parsed.readings)) throw new Error('Missing readings');
+    const valid = parsed.readings.filter(item => item && typeof item.id === 'string' && typeof item.createdAt === 'string' && typeof item.text === 'string' && Array.isArray(item.changed));
+    if (!valid.length) throw new Error('No valid readings');
+    for (const reading of valid.slice(0, proUnlocked ? 50 : 5).reverse()) await saveReading(reading, proUnlocked ? 50 : 5);
+    await renderHistory();
+    setMessage(`${Math.min(valid.length, proUnlocked ? 50 : 5)} local readings imported.`, 'success');
+  } catch {
+    setMessage('That JSON file is not an Anywhere Reader history export. Choose the original exported file.');
+  } finally { input.value = ''; }
+}
+
+interface SavedRegion { name: string; region: Region }
+
+function savedRegions(): SavedRegion[] {
+  try { return JSON.parse(localStorage.getItem('reader:saved-regions') || '[]') as SavedRegion[]; }
+  catch { return []; }
+}
+
+function renderSavedRegions(): void {
+  const select = byId<HTMLSelectElement>('savedRegions');
+  select.innerHTML = '<option value="">Choose a saved region</option>';
+  savedRegions().forEach((item, index) => { const option = document.createElement('option'); option.value = String(index); option.textContent = item.name; select.append(option); });
+}
+
+function saveCurrentRegion(): void {
+  const input = byId<HTMLInputElement>('regionName');
+  const message = byId('regionMessage');
+  const name = input.value.trim();
+  if (!name) { message.textContent = 'Give this region a short name first.'; input.focus(); return; }
+  const rows = savedRegions();
+  const existing = rows.findIndex(item => item.name.toLocaleLowerCase() === name.toLocaleLowerCase());
+  const item = { name, region: { ...region } };
+  if (existing >= 0) rows[existing] = item;
+  else if (rows.length < 10) rows.push(item);
+  else { message.textContent = 'Ten regions are already saved. Reuse a name to replace one.'; return; }
+  localStorage.setItem('reader:saved-regions', JSON.stringify(rows));
+  input.value = ''; message.textContent = `${name} saved on this device.`; renderSavedRegions();
+}
+
+function loadSavedRegion(): void {
+  const value = byId<HTMLSelectElement>('savedRegions').value;
+  if (value === '') return;
+  const index = Number(value);
+  if (!Number.isInteger(index)) return;
+  const item = savedRegions()[index];
+  if (!item) return;
+  region = { ...item.region }; updateSelection();
+  document.querySelectorAll<HTMLButtonElement>('[data-region]').forEach(button => button.setAttribute('aria-pressed', 'false'));
+  byId('regionMessage').textContent = `${item.name} loaded.`;
+}
+
 async function setupLicense(): Promise<void> {
   updateLicenseUi(proUnlocked);
   if (!localStorage.getItem('sb_license:remote-screen-reader')) return;
@@ -421,6 +484,8 @@ async function restoreLicense(): Promise<void> {
 function updateLicenseUi(valid: boolean): void {
   byId('licenseState').textContent = valid ? 'PRO UNLOCKED' : 'NOT UNLOCKED';
   byId('licenseState').classList.toggle('unlocked', valid);
+  byId('proRegionTools').hidden = !valid;
+  if (valid) renderSavedRegions();
 }
 
 function updateOnlineState(): void { byId('networkBanner').hidden = navigator.onLine; }
