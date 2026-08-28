@@ -1,0 +1,12 @@
+{
+  "slug": "remote-screen-reader",
+  "title": "Anywhere Reader",
+  "territory": "utilities",
+  "user": "A blind or low-vision person using a locked-down work, school, kiosk, or game computer who needs to hear the currently visible UI without installing software on that computer.",
+  "smallest_useful_product": "Android app that photographs/streams a selected screen region, performs on-device OCR, reads only changed lines on a push-to-talk gesture, and offers large high-contrast zoom.",
+  "success_measure": "In a 10-person pilot, at least 7 complete a three-step task on an unmanaged visual-only app without sighted help in under five minutes.",
+  "artifact_class": "android",
+  "monetization": "one-time",
+  "constraints": "All OCR/audio must stay on device by default; obtain clear consent before any camera capture; do not defeat DRM, authentication, or employer monitoring controls; accessibility-tree integration is optional only.",
+  "state": "RESEARCHED"
+}
