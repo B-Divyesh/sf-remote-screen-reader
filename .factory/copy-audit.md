@@ -25,7 +25,7 @@ The first screen states the job, audience, and first action in one breath: “Re
 | Camera permission starts here. | 4 |
 | You can also choose a photo. | 6 |
 | Only point at a screen you’re allowed to photograph. | 10 |
-| Frames stay in this browser and are discarded after text recognition. | 11 |
+| Frames stay in this browser. | 5 |
 | I understand and consent to camera capture on this device. | 10 |
 | Move a corner with arrow keys. | 6 |
 | Hold Shift for larger steps. | 5 |
@@ -44,6 +44,7 @@ The first screen states the job, audience, and first action in one breath: “Re
 | Nothing saved yet. | 3 |
 | Your five most recent readings will appear here. | 8 |
 | The temporary OCR copy is cleared after each reading. | 9 |
+| A selected photo stays visible until you choose another image. | 10 |
 
 ## Purchase sentences
 
