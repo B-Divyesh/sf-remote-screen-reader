@@ -1,4 +1,4 @@
-import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, resolve, sep } from 'node:path';
 
@@ -13,6 +13,12 @@ const types = new Map([
   ['.woff', 'font/woff'], ['.woff2', 'font/woff2'], ['.wasm', 'application/wasm'], ['.webmanifest', 'application/manifest+json'],
   ['.xml', 'application/xml; charset=utf-8'], ['.txt', 'text/plain; charset=utf-8'], ['.gz', 'application/gzip'],
 ]);
+let globalHeaders = {};
+try {
+  globalHeaders = JSON.parse(readFileSync(resolve(root, 'staticwebapp.config.json'), 'utf8')).globalHeaders || {};
+} catch {
+  // Build output can still be inspected before its deployment configuration is copied.
+}
 
 createServer((request, response) => {
   const pathname = decodeURIComponent(new URL(request.url || '/', 'http://preview').pathname);
@@ -27,6 +33,7 @@ createServer((request, response) => {
   const status = file.endsWith(`${sep}not-found.html`) ? 404 : 200;
   response.setHeader('Content-Type', types.get(extname(file)) || 'application/octet-stream');
   response.setHeader('Cache-Control', 'no-store');
+  for (const [name, value] of Object.entries(globalHeaders)) response.setHeader(name, String(value));
   response.writeHead(status);
   if (request.method === 'HEAD') response.end();
   else createReadStream(file).pipe(response);

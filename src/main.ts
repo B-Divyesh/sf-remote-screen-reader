@@ -61,7 +61,7 @@ function renderLegal(kind: 'privacy' | 'terms'): void {
   });
   app.innerHTML = `${header()}<main id="main" class="legal"><p class="eyebrow">UPDATED 6 SEPTEMBER 2026</p><h1>${privacy ? 'How your data is handled' : 'Terms of use'}</h1>
   ${privacy ? `<p class="lede">Your camera, recognized text, and spoken output stay on your device. Anywhere Reader has no account and no analytics.</p>
-    <h2>What the app accesses</h2><p>Camera access starts only after you check the consent box and choose “Allow camera.” Frames are processed in your browser by a local OCR engine. They are not uploaded to us or any third party.</p>
+    <h2>What the app accesses</h2><p>Camera access starts only after you check the consent box and choose “Allow camera.” Frames are processed in your browser by a local OCR engine. They are not uploaded to us or any third party.</p><p>A temporary OCR copy is cleared after each reading. A selected photo stays visible until you choose another image.</p>
     <h2>What is stored</h2><p>Recent recognized text, settings, and an optional license token are stored locally in your browser. The OCR language model is cached for offline use. You can clear reading history inside the app or clear the site’s storage in browser settings.</p>
     <h2>Purchase verification</h2><p>If you buy or restore Pro, your license token is sent to the Sociobot billing API solely to verify the purchase. Sociobot/Dodo is the merchant of record and handles checkout details; payment card data never reaches this app.</p>
     <h2>Your choices</h2><p>You can use photo upload instead of live camera, stop the camera at any time, use the free reader without a license, and export or delete your local reading history.</p>`
@@ -105,7 +105,7 @@ function renderHome(asDemo = false): void {
     <section class="reader-section" id="reader" aria-labelledby="readerTitle">
       <div class="section-heading"><div><p class="eyebrow">WEB READER</p><h2 id="readerTitle">Read a screen</h2></div><p>Camera permission starts here. You can also choose a photo.</p></div>
       <div class="consent-panel" id="consentPanel">
-        <div class="consent-icon">${icon('camera')}</div><div><h3>Before the camera opens</h3><p>Only point at a screen you’re allowed to photograph. Frames stay in this browser and are discarded after text recognition.</p>
+        <div class="consent-icon">${icon('camera')}</div><div><h3>Before the camera opens</h3><p>Only point at a screen you’re allowed to photograph. Frames stay in this browser. The temporary OCR copy is cleared after each reading.</p>
           <label class="check"><input type="checkbox" id="consentCheck"><span>I understand and consent to camera capture on this device.</span></label>
           <div class="button-row"><button class="primary" id="allowCamera" disabled>Allow camera</button><label class="secondary file-button" for="photoInput">Use a photo instead</label><input class="visually-hidden" id="photoInput" type="file" accept="image/*" capture="environment"></div>
         </div>
@@ -399,6 +399,7 @@ async function readRegion(): Promise<void> {
   byId('transcript').setAttribute('aria-busy', 'true');
   setReadState('Reading…');
   setMessage('');
+  const captureCanvas = byId<HTMLCanvasElement>('captureCanvas');
   try {
     const canvas = captureCrop(!video.hidden ? video : image);
     const ocr = await initWorker();
@@ -420,14 +421,22 @@ async function readRegion(): Promise<void> {
     await renderHistory();
     setReadState(changed.length ? `${changed.length} changed ${changed.length === 1 ? 'line' : 'lines'}` : 'No change');
   } catch (error) {
-    console.error('Recognition failed', error);
+    console.warn('Recognition failed', error);
     setReadState('Reader error');
     setMessage(navigator.onLine ? 'Text recognition did not finish. Keep the app open and try again.' : 'The OCR model is not saved yet. Reconnect once and choose “Prepare offline reading.”');
   } finally {
+    clearCaptureCanvas(captureCanvas);
     button.disabled = false;
     byId('transcript').setAttribute('aria-busy', 'false');
     setProgress(false);
   }
+}
+
+function clearCaptureCanvas(canvas: HTMLCanvasElement): void {
+  const context = canvas.getContext('2d');
+  context?.clearRect(0, 0, canvas.width, canvas.height);
+  canvas.width = 0;
+  canvas.height = 0;
 }
 
 function captureCrop(source: HTMLVideoElement | HTMLImageElement): HTMLCanvasElement {

@@ -302,7 +302,7 @@ footer .fineprint { grid-column: 1/-1; font-size: 13px; }
   .demo-banner > span { width: 100%; justify-content: space-between; }
   .demo-hero { padding-block: 32px; }
   .demo-main .reader-section { padding-top: 32px; }
-  .demo-main .reader-section .section-heading { display: none; }
+  .demo-main .reader-section .section-heading { margin-bottom: 24px; }
   .demo-main .output-column { order: -1; }
   footer { grid-template-columns: 1fr; }
   footer > div { align-items: start; }

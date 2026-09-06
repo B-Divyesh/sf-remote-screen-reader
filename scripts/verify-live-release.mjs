@@ -26,4 +26,7 @@ for (const [label, url] of [['APK', metadata.downloadUrl], ['checksum', metadata
   assert(response.ok, `${label} URL returned ${response.status}`);
 }
 
+execFileSync('node', ['scripts/verify-published-android-apk.mjs'], { stdio: 'inherit' });
+
 console.log(`Live checkout and Android release checks passed (${metadata.version}, ${metadata.sha256}).`);
+import { execFileSync } from 'node:child_process';

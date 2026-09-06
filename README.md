@@ -13,6 +13,7 @@ Android 1.0.1: [download the APK](https://github.com/B-Divyesh/sf-remote-screen-
 - Reads English text from a live rear camera or a chosen screen photo.
 - Requests live camera access only after the user gives consent.
 - Runs OCR in the app and sends no screen image to cloud OCR.
+- Clears the temporary OCR capture after each reading.
 - Speaks only lines that changed after the first reading.
 - Enlarges recognized text from 24 to 52 pixels.
 - Moves the selected region with touch, a pointer, or arrow keys.

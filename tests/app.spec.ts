@@ -89,8 +89,21 @@ test('demo, legal, and not-found routes each have one clear page heading', async
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('main')).toHaveCount(1);
     const scan = await new AxeBuilder({ page }).analyze();
-    expect(scan.violations.filter(item => ['serious', 'critical'].includes(item.impact || ''))).toEqual([]);
+    expect(scan.violations).toEqual([]);
   }
+});
+
+test('offline fallback is styled under the production content policy', async ({ page }) => {
+  const consoleErrors: string[] = [];
+  page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  const response = await page.goto('/offline.html');
+  expect(response?.status()).toBe(200);
+  await expect(page).toHaveTitle('Reader is offline — Anywhere Reader');
+  await expect(page.getByRole('heading', { name: 'Reader is offline' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Open saved reader' })).toBeVisible();
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(9, 12, 11)');
+  await expect(page.locator('h1')).toHaveCSS('color', 'rgb(216, 255, 62)');
+  expect(consoleErrors).toEqual([]);
 });
 
 test('reduced motion and enlarged text preserve the layout', async ({ page }) => {

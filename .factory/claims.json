@@ -21,6 +21,13 @@
     "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
   },
   {
+    "id": "temporary-capture-cleared",
+    "claim": "The temporary OCR capture is cleared after each reading.",
+    "where": "reader consent, privacy, README",
+    "test": "npm run test:claims -- --grep @claim:temporary-capture-cleared",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; run local OCR, then assert the temporary capture has no pixel buffer"
+  },
+  {
     "id": "changed-line-speech",
     "claim": "After the first reading, the phone speaks only lines that changed.",
     "where": "reader, how it works, README",
@@ -162,10 +169,10 @@
   },
   {
     "id": "android-download",
-    "claim": "The published Android 1.0.1 APK and matching SHA-256 checksum are available.",
+    "claim": "The published Android APK matches the current reader and its SHA-256 checksum.",
     "where": "landing page, README",
     "test": "npm run test:claims -- --grep @claim:android-download",
-    "sandbox": "read local release metadata, then request the published APK and checksum endpoints without downloading user data"
+    "sandbox": "clean production build; download the public APK, verify its SHA-256, and compare every bundled reader file with the current Android candidate"
   },
   {
     "id": "one-time-pro-offer",

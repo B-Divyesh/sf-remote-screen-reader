@@ -68,6 +68,22 @@ test('@claim:local-private-ocr @claim:changed-line-speech @claim:no-account-or-c
   expect(await page.evaluate(() => (window as typeof window & { __spoken: string[] }).__spoken.length)).toBe(before + 1);
 });
 
+test('@claim:temporary-capture-cleared clears temporary pixels after completed and failed recognition attempts', async ({ browser }) => {
+  test.setTimeout(120_000);
+  for (const failure of [false, true]) {
+    const context = await browser.newContext({ serviceWorkers: 'block' });
+    const page = await context.newPage();
+    if (failure) await page.route('**/ocr/worker.min.js', route => route.abort('failed'));
+    await page.goto('/demo');
+    await page.getByRole('button', { name: 'Show an updated screen' }).click();
+    await page.getByRole('button', { name: /Read visible region/ }).click();
+    if (failure) await expect(page.locator('#readState')).toHaveText('Reader error', { timeout: 30_000 });
+    else await expect(page.locator('#readState')).toHaveText('1 changed line', { timeout: 90_000 });
+    expect(await page.locator('#captureCanvas').evaluate(canvas => ({ width: (canvas as HTMLCanvasElement).width, height: (canvas as HTMLCanvasElement).height }))).toEqual({ width: 0, height: 0 });
+    await context.close();
+  }
+});
+
 test('@claim:camera-consent @claim:photo-fallback requires consent and recovers with a valid photo', async ({ page }) => {
   await page.addInitScript(() => {
     let calls = 0;
@@ -242,12 +258,8 @@ test('@claim:android-bundle packages the production reader and offline OCR model
 });
 
 test('@claim:android-download @claim:one-time-pro-offer @claim:hosted-payment exposes the published Android package and live offer', async ({ request, page }) => {
-  const release = await (await request.get('/android-release.json')).json();
-  expect(release.version).toBe('1.0.1');
-  expect(release.sha256).toMatch(/^[a-f0-9]{64}$/);
-  expect((await request.head(release.downloadUrl)).ok()).toBe(true);
-  const checksum = await request.get(release.checksumUrl);
-  expect(await checksum.text()).toContain(release.sha256);
+  const publishedArtifact = execFileSync('node', ['scripts/verify-published-android-apk.mjs'], { cwd: process.cwd(), encoding: 'utf8' });
+  expect(publishedArtifact).toContain('Published Android APK matches the current bundled reader');
 
   const catalog = await (await request.get('https://api.sociobot.in/api/v1/products')).json();
   const product = catalog.data.find((item: { slug: string }) => item.slug === 'remote-screen-reader');

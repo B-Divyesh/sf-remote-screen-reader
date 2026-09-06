@@ -43,6 +43,7 @@ The first screen states the job, audience, and first action in one breath: “Re
 | Anywhere Reader never clicks the target computer. | 7 |
 | Nothing saved yet. | 3 |
 | Your five most recent readings will appear here. | 8 |
+| The temporary OCR copy is cleared after each reading. | 9 |
 
 ## Purchase sentences
 
@@ -55,7 +56,16 @@ The first screen states the job, audience, and first action in one breath: “Re
 | Pay ₹499 once | 3 |
 | Sociobot/Dodo handles checkout and refunds as merchant of record. | 10 |
 
-No sentence exceeds 22 words. No audited text uses the banned marketing words. Headings name their sections: Read a screen, How screen reading works, Limits and safe use, Saved readings, and Pro convenience features.
+No sentence exceeds 22 words. No audited text uses the banned marketing words. Headings name their sections: Read a screen, How screen reading works, Limits and safe use, Saved readings, Pro convenience features, and Reader is offline.
+
+## Offline fallback text
+
+| Text | Words |
+| --- | ---: |
+| Reader is offline | 3 |
+| This page needs a connection to finish loading. | 9 |
+| Reconnect, then open the reader again. | 6 |
+| Open saved reader | 3 |
 
 ## Terminology
 

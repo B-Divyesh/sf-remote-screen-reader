@@ -1,7 +1,7 @@
-const VERSION = 'reader-v3';
+const VERSION = 'reader-v4';
 const SHELL = `${VERSION}-shell`;
 const OCR = `${VERSION}-ocr`;
-const APP_SHELL = ['/offline.html', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/icons/apple-touch-icon.png', '/assets/demo-screen.webp', '/assets/demo-screen-changed.webp'];
+const APP_SHELL = ['/offline.html', '/offline.css', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/icons/apple-touch-icon.png', '/assets/demo-screen.webp', '/assets/demo-screen-changed.webp'];
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
