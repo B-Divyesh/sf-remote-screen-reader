@@ -3,7 +3,7 @@
   "short_name": "Reader",
   "description": "Hear the visible part of any screen without installing software on that computer.",
   "id": "/?source=installed",
-  "start_url": "/?v=1&source=installed",
+  "start_url": "/?v=2&source=installed",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

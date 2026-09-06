@@ -36,12 +36,18 @@ export function clampRegion(region: Region): Region {
   };
 }
 
-const DB_NAME = 'anywhere-reader';
+const REAL_DB_NAME = 'anywhere-reader';
+const DEMO_DB_NAME = 'demo:anywhere-reader';
 const STORE = 'readings';
+let dbName = REAL_DB_NAME;
+
+export function configureReadingStore(mode: 'real' | 'demo'): void {
+  dbName = mode === 'demo' ? DEMO_DB_NAME : REAL_DB_NAME;
+}
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(dbName, 1);
     request.onupgradeneeded = () => request.result.createObjectStore(STORE, { keyPath: 'id' });
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
@@ -88,4 +94,13 @@ export async function clearReadings(): Promise<void> {
     tx.onerror = () => reject(tx.error);
   });
   db.close();
+}
+
+export function deleteDemoReadings(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.deleteDatabase(DEMO_DB_NAME);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+    request.onblocked = () => reject(new Error('Demo reading storage is still open.'));
+  });
 }

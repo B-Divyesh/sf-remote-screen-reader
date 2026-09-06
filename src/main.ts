@@ -1,11 +1,14 @@
 import './style.css';
 import { Capacitor } from '@capacitor/core';
 import { CHECKOUT_URL, captureReturnedLicense, hasOptimisticUnlock, saveLicense, verifyLicense } from './license';
-import { DEFAULT_REGION, changedLines, clampRegion, clearReadings, getReadings, saveReading, type Reading, type Region } from './reader';
+import { DEFAULT_REGION, changedLines, clampRegion, clearReadings, configureReadingStore, deleteDemoReadings, getReadings, saveReading, type Reading, type Region } from './reader';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const APK_DOWNLOAD_URL = 'https://github.com/B-Divyesh/sf-remote-screen-reader/releases/download/v1.0.1/anywhere-reader-1.0.1.apk';
 const APK_CHECKSUM_URL = `${APK_DOWNLOAD_URL}.sha256`;
+const PRODUCT_ORIGIN = 'https://remote-screen-reader.sociobot.in';
+const SAMPLE_TEXT = 'ACCESS PANEL\nSYSTEM READY\nPress Enter to continue';
+let demoMode = false;
 
 function icon(name: 'eye' | 'sound' | 'lock' | 'camera'): string {
   const paths = {
@@ -21,22 +24,42 @@ function header(): string {
   return `<header class="site-header">
     <a class="brand" href="/" aria-label="Anywhere Reader home"><span class="brand-mark" aria-hidden="true">A&gt;</span><span>Anywhere Reader</span></a>
     <nav aria-label="Main navigation">
-      <a href="/#reader">Reader</a><a href="/#how">How it works</a><a href="/#pro">Pro</a>
+      <a href="/demo">Demo</a><a href="/#reader">Web reader</a><a href="/privacy">Privacy</a>
     </nav>
     <button class="install-button secondary compact" id="installApp" hidden>Install app</button>
   </header>`;
 }
 
 function footer(): string {
-  return `<footer><div><span class="brand-mark" aria-hidden="true">A&gt;</span><p>Built as a private optical fallback—not a replacement for a full screen reader.</p></div>
+  return `<footer><div><span class="brand-mark" aria-hidden="true">A&gt;</span><p>Reads permitted visible screen regions without controlling the computer.</p></div>
     <nav aria-label="Legal"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="https://github.com/B-Divyesh/sf-remote-screen-reader">Source</a></nav>
-    <p class="fineprint">Original AI-assisted illustration. No analytics. No cloud OCR.</p></footer>`;
+    <p class="fineprint">Built by Param Factory · Version 1.0.1 · Original AI-assisted illustration.</p></footer>`;
+}
+
+interface PageMetadata { title: string; description: string; canonical: string }
+
+function setMetadata(metadata: PageMetadata): void {
+  document.title = metadata.title;
+  const values: Record<string, string> = {
+    'meta[name="description"]': metadata.description,
+    'meta[property="og:title"]': metadata.title,
+    'meta[property="og:description"]': metadata.description,
+    'meta[property="og:url"]': metadata.canonical,
+    'meta[name="twitter:title"]': metadata.title,
+    'meta[name="twitter:description"]': metadata.description,
+  };
+  Object.entries(values).forEach(([selector, value]) => document.querySelector<HTMLMetaElement>(selector)?.setAttribute('content', value));
+  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', metadata.canonical);
 }
 
 function renderLegal(kind: 'privacy' | 'terms'): void {
   const privacy = kind === 'privacy';
-  document.title = `${privacy ? 'Privacy' : 'Terms'} — Anywhere Reader`;
-  app.innerHTML = `${header()}<main id="main" class="legal"><p class="eyebrow">LEGAL // 2026-08-28</p><h1>${privacy ? 'Privacy, in plain language.' : 'Terms of use.'}</h1>
+  setMetadata({
+    title: `${privacy ? 'Privacy' : 'Terms'} — Anywhere Reader`,
+    description: privacy ? 'How Anywhere Reader handles camera images, recognized text, local history, and license checks.' : 'Rules for safe use, OCR accuracy, and the one-time Anywhere Reader Pro purchase.',
+    canonical: `${PRODUCT_ORIGIN}/${kind}`,
+  });
+  app.innerHTML = `${header()}<main id="main" class="legal"><p class="eyebrow">UPDATED 6 SEPTEMBER 2026</p><h1>${privacy ? 'How your data is handled' : 'Terms of use'}</h1>
   ${privacy ? `<p class="lede">Your camera, recognized text, and spoken output stay on your device. Anywhere Reader has no account and no analytics.</p>
     <h2>What the app accesses</h2><p>Camera access starts only after you check the consent box and choose “Allow camera.” Frames are processed in your browser by a local OCR engine. They are not uploaded to us or any third party.</p>
     <h2>What is stored</h2><p>Recent recognized text, settings, and an optional license token are stored locally in your browser. The OCR language model is cached for offline use. You can clear reading history inside the app or clear the site’s storage in browser settings.</p>
@@ -50,24 +73,37 @@ function renderLegal(kind: 'privacy' | 'terms'): void {
     <p><a class="text-link" href="/">← Return to the reader</a></p></main>${footer()}`;
 }
 
-function renderHome(): void {
-  captureReturnedLicense();
+function renderHome(asDemo = false): void {
+  demoMode = asDemo;
+  configureReadingStore(asDemo ? 'demo' : 'real');
+  proUnlocked = asDemo ? false : hasOptimisticUnlock();
+  if (!asDemo) captureReturnedLicense();
+  setMetadata(asDemo ? {
+    title: 'Demo — Anywhere Reader',
+    description: 'Try a sample screen reading without a camera. Sample history stays separate from your real reader data.',
+    canonical: `${PRODUCT_ORIGIN}/demo`,
+  } : {
+    title: 'Anywhere Reader — read a screen with your phone',
+    description: 'Use a phone to read a permitted visible computer screen when you cannot install screen-reader software.',
+    canonical: `${PRODUCT_ORIGIN}/`,
+  });
   app.innerHTML = `${header()}
+  ${asDemo ? `<aside class="demo-banner" id="demoBanner" aria-label="Sample mode"><strong>Demo — sample data, nothing is saved</strong><span><button class="text-button" id="resetDemo">Reset demo</button><a href="/#reader" id="startReal">Start for real</a></span></aside>` : ''}
   <div class="network-banner" id="networkBanner" role="status" hidden><strong>Offline mode.</strong> Camera, saved OCR, and speech still work. Purchase verification will resume later.</div>
-  <main id="main">
-    <section class="hero" aria-labelledby="heroTitle">
-      <div class="hero-copy"><p class="eyebrow"><span class="status-dot"></span> PRIVATE OPTICAL READER // ANDROID PWA</p>
-        <h1 id="heroTitle">Hear the screen.<br><span>Touch nothing on it.</span></h1>
-        <p class="lede">Point your phone at a locked-down computer, select the part that changed, and hear it aloud. No install on the target. No cloud. No account.</p>
-        <div class="hero-actions"><a class="primary" id="downloadAndroid" href="${APK_DOWNLOAD_URL}" aria-describedby="androidReleaseMeta">Download Android APK</a><a class="secondary" href="#reader">Try the web reader <span aria-hidden="true">↓</span></a><a class="text-link" href="#how">How it works</a></div>
-        <p class="android-release-meta" id="androidReleaseMeta"><span>Android 6+</span><span>Release signed</span><a class="checksum-link" id="apkChecksum" href="${APK_CHECKSUM_URL}">SHA-256 checksum</a><code id="apkDigest">Checking release…</code></p>
-        <ul class="proof-list" aria-label="Product guarantees"><li>${icon('lock')} On-device OCR</li><li>${icon('sound')} Changed lines only</li><li>${icon('eye')} Large text zoom</li></ul>
+  <main id="main"${asDemo ? ' class="demo-main"' : ''}>
+    <section class="hero${asDemo ? ' demo-hero' : ''}" aria-labelledby="heroTitle">
+      <div class="hero-copy"><p class="eyebrow"><span class="status-dot"></span> ${asDemo ? 'SAMPLE READING' : 'PHONE SCREEN READER'}</p>
+        <h1 id="heroTitle">${asDemo ? 'Try a sample screen reading' : 'Read a visible screen with your phone'}</h1>
+        <p class="lede">${asDemo ? 'Explore a prepared screen and reading history without using your camera or changing your real data.' : 'For blind and low-vision people using computers where screen-reader software cannot be installed.'}</p>
+        <div class="hero-actions">${asDemo ? `<a class="primary" href="#reader">Explore the sample reader</a><a class="secondary" href="/#reader">Start for real</a>` : `<a class="primary" href="/demo">Try it with sample data</a><span class="action-note">Opens a sample reading without using your camera.</span><a class="secondary" id="downloadAndroid" href="${APK_DOWNLOAD_URL}" aria-describedby="androidReleaseMeta">Download Android APK</a><a class="text-link" href="#reader">Use the web reader</a>`}</div>
+        <p class="android-release-meta" id="androidReleaseMeta"><span>Android app</span><span>Version 1.0.1</span><a class="checksum-link" id="apkChecksum" href="${APK_CHECKSUM_URL}">SHA-256 checksum</a><code id="apkDigest">Checking release…</code></p>
+        <ul class="proof-list" aria-label="Product facts"><li>${icon('lock')} OCR stays on this device</li><li>${icon('sound')} Reads offline after setup</li><li>${icon('eye')} Free reader; Pro is ₹499 once</li></ul>
       </div>
       <figure class="hero-visual"><picture><source srcset="/assets/reader-bridge-768.webp 768w, /assets/reader-bridge.webp 1536w" sizes="(max-width: 900px) calc(100vw - 40px), 52vw" type="image/webp"><img src="/assets/reader-bridge.webp" width="1536" height="1024" fetchpriority="high" alt="Pixel art of a phone framing text rows on a computer screen and turning them into an audio waveform"></picture><figcaption><span>SCREEN</span><span>REGION 08:18—92:76</span><span>VOICE</span></figcaption></figure>
     </section>
 
     <section class="reader-section" id="reader" aria-labelledby="readerTitle">
-      <div class="section-heading"><div><p class="eyebrow">READER // LOCAL MODE</p><h2 id="readerTitle">Aim. Frame. Read.</h2></div><p>Camera permission starts here—not on page load. Use live view or take a photo.</p></div>
+      <div class="section-heading"><div><p class="eyebrow">WEB READER</p><h2 id="readerTitle">Read a screen</h2></div><p>Camera permission starts here. You can also choose a photo.</p></div>
       <div class="consent-panel" id="consentPanel">
         <div class="consent-icon">${icon('camera')}</div><div><h3>Before the camera opens</h3><p>Only point at a screen you’re allowed to photograph. Frames stay in this browser and are discarded after text recognition.</p>
           <label class="check"><input type="checkbox" id="consentCheck"><span>I understand and consent to camera capture on this device.</span></label>
@@ -86,6 +122,7 @@ function renderHome(): void {
           <p class="keyboard-hint">Move a corner with arrow keys. Hold Shift for larger steps.</p>
           <div class="region-presets" aria-label="Region presets"><span>Frame:</span><button data-region="focus" aria-pressed="true">Focus box</button><button data-region="top">Top half</button><button data-region="bottom">Bottom half</button><button data-region="whole">Whole screen</button></div>
           <div class="pro-region-tools" id="proRegionTools" hidden><label for="savedRegions">Pro saved regions</label><select id="savedRegions"><option value="">Choose a saved region</option></select><label class="visually-hidden" for="regionName">Region name</label><input id="regionName" maxlength="30" placeholder="Region name"><button class="secondary compact" id="saveRegion">Save current frame</button><p id="regionMessage" role="status"></p></div>
+          ${asDemo ? `<div class="demo-controls"><button class="secondary" id="loadUpdatedSample">Show an updated screen</button><p>Then choose “Read visible region” to hear only the changed line.</p></div>` : ''}
           <div class="button-row"><button class="secondary" id="toggleCamera">Stop camera</button><label class="secondary file-button" for="photoInput2">Choose photo</label><input class="visually-hidden" id="photoInput2" type="file" accept="image/*" capture="environment"></div>
         </section>
 
@@ -98,20 +135,21 @@ function renderHome(): void {
         </section>
       </div>
       <div class="reader-message" id="readerMessage" role="alert" hidden></div>
-      <div class="offline-prepare"><div>${icon('lock')}<div><strong>Going somewhere without a connection?</strong><p>Save the English text model once (about 12 MB). Camera frames still never leave your device.</p></div></div><button class="secondary" id="prepareOffline">Prepare offline reading</button></div>
+      <div class="offline-prepare"><div>${icon('lock')}<div><strong>Need to read without a connection?</strong><p>Save the English text model once. Camera frames still never leave your device.</p></div></div><button class="secondary" id="prepareOffline">Prepare offline reading</button></div>
     </section>
 
-    <section class="how-section" id="how" aria-labelledby="howTitle"><div class="section-heading"><div><p class="eyebrow">SIGNAL PATH // 3 STEPS</p><h2 id="howTitle">From silent pixels to speech.</h2></div><p>Nothing is installed on or sent to the computer you are reading.</p></div>
+    <section class="how-section" id="how" aria-labelledby="howTitle"><div class="section-heading"><div><p class="eyebrow">THREE STEPS</p><h2 id="howTitle">How screen reading works</h2></div><p>The target computer needs no installed software.</p></div>
       <ol class="signal-path"><li><span class="step-no">01</span><div class="step-pixel camera-pixel" aria-hidden="true"></div><h3>Aim</h3><p>Give one-time camera consent, then point at any permitted visible screen.</p></li><li><span class="step-no">02</span><div class="step-pixel frame-pixel" aria-hidden="true"></div><h3>Frame</h3><p>Use the high-contrast box to isolate a menu, message, cursor area, or changed panel.</p></li><li><span class="step-no">03</span><div class="step-pixel sound-pixel" aria-hidden="true"></div><h3>Read</h3><p>On-device OCR finds words. Your phone speaks only lines that were not in the last frame.</p></li></ol>
-      <aside class="safety-note"><span aria-hidden="true">!</span><div><h3>An honest fallback</h3><p>OCR can misread text and cannot reveal DRM-protected or hidden content. Verify critical instructions. Anywhere Reader never clicks the target computer.</p></div></aside>
+      <aside class="safety-note"><span aria-hidden="true">!</span><div><h3>Limits and safe use</h3><p>OCR can misread text and cannot reveal DRM-protected or hidden content. Verify critical instructions. Anywhere Reader never clicks the target computer.</p></div></aside>
     </section>
 
-    <section class="history-section" aria-labelledby="historyTitle"><div class="section-heading"><div><p class="eyebrow">LOCAL LOG // THIS DEVICE</p><h2 id="historyTitle">Recent readings.</h2></div><div class="button-row"><button class="text-button" id="refreshHistory">Refresh</button><button class="text-button danger" id="clearHistory">Clear history</button></div></div><div id="historyList" class="history-list"><p class="history-empty">Nothing saved yet. Your five most recent free readings will appear here.</p></div></section>
+    <section class="history-section" aria-labelledby="historyTitle"><div class="section-heading"><div><p class="eyebrow">SAVED ON THIS DEVICE</p><h2 id="historyTitle">Saved readings</h2></div><div class="button-row"><button class="text-button" id="refreshHistory">Refresh</button><button class="text-button danger" id="clearHistory">Clear history</button></div></div><div id="historyList" class="history-list"><p class="history-empty">Nothing saved yet. Your five most recent free readings will appear here.</p></div></section>
 
-    <section class="pro-section" id="pro" aria-labelledby="proTitle"><div class="pro-copy"><p class="eyebrow">OPTIONAL UNLOCK // ONE TIME</p><h2 id="proTitle">Keep the reader free.<br>Make repeat work faster.</h2><p>Core camera reading, changed-line speech, zoom, and history export are always free. Pro adds 50-item local history and saved region presets for repeated workstations.</p><ul><li>50 local readings instead of 5</li><li>Save and name up to 10 reading regions</li><li>No account and no recurring speech quota</li></ul></div><div class="price-terminal"><div><span>ANYWHERE READER PRO</span><span id="licenseState">NOT UNLOCKED</span></div><p class="price"><sup>₹</sup>499 <small>one time</small></p><a class="primary wide" href="${CHECKOUT_URL}">Buy Pro securely</a><p class="merchant">Checkout and refunds by Sociobot/Dodo, merchant of record.</p><details><summary>Have a license? Restore it</summary><label for="licenseInput">License token</label><input id="licenseInput" type="text" autocomplete="off" spellcheck="false"><button class="secondary" id="restoreLicense" aria-label="Verify pasted license">Verify license</button><p id="licenseMessage" role="status"></p></details><p class="legal-links"><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></p></div></section>
+    <section class="pro-section" id="pro" aria-labelledby="proTitle"><div class="pro-copy"><p class="eyebrow">OPTIONAL PRO · ONE-TIME PURCHASE</p><h2 id="proTitle">Pro convenience features</h2><p>The free reader includes camera reading, changed-line speech, zoom, and history export. Pro adds longer local history and named regions.</p><ul><li>Keep 50 local readings instead of 5</li><li>Save and name up to 10 reading regions</li><li>Pay ₹499 once</li></ul></div><div class="price-terminal"><div><span>ANYWHERE READER PRO</span><span id="licenseState">NOT UNLOCKED</span></div><p class="price"><sup>₹</sup>499 <small>one time</small></p><a class="primary wide" href="${CHECKOUT_URL}">Buy Pro securely</a><p class="merchant">Sociobot/Dodo handles checkout and refunds as merchant of record.</p><details><summary>Have a license? Restore it</summary><label for="licenseInput">License token</label><input id="licenseInput" type="text" autocomplete="off" spellcheck="false"><button class="secondary" id="restoreLicense" aria-label="Verify pasted license">Verify license</button><p id="licenseMessage" role="status"></p></details><p class="legal-links"><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></p></div></section>
   </main>${footer()}
   <div class="update-toast" id="updateToast" role="status" hidden><span>A fresh reader is ready.</span><button id="applyUpdate">Update now</button></div>`;
   setupHome();
+  if (asDemo) void setupDemo();
 }
 
 type OcrWorker = Awaited<ReturnType<(typeof import('tesseract.js'))['createWorker']>>;
@@ -123,6 +161,7 @@ let lastSpoken = '';
 let proUnlocked = hasOptimisticUnlock();
 
 function byId<T extends HTMLElement>(id: string): T { return document.getElementById(id) as T; }
+function localKey(key: string): string { return demoMode ? `demo:${key}` : key; }
 
 function setupHome(): void {
   const consent = byId<HTMLInputElement>('consentCheck');
@@ -149,12 +188,82 @@ function setupHome(): void {
     button.addEventListener('keydown', event => moveCorner(event, button.dataset.corner!));
     button.addEventListener('pointerdown', event => beginCornerDrag(event, button.dataset.corner!));
   });
-  const savedRate = localStorage.getItem('reader:speech-rate');
+  const savedRate = localStorage.getItem(localKey('reader:speech-rate'));
   if (savedRate) byId<HTMLInputElement>('speechRate').value = savedRate;
   updateOnlineState();
   window.addEventListener('online', updateOnlineState);
   window.addEventListener('offline', updateOnlineState);
-  updateZoom(); updateRate(); updateSelection(); renderHistory(); setupLicense(); setupInstall(); setupAndroidRelease(); registerServiceWorker();
+  updateZoom(); updateRate(); updateSelection(); renderHistory();
+  if (!demoMode) void setupLicense();
+  setupInstall(); setupAndroidRelease(); registerServiceWorker();
+}
+
+async function setupDemo(): Promise<void> {
+  byId('consentPanel').hidden = true;
+  byId('workspace').hidden = false;
+  byId('emptyCamera').hidden = true;
+  const cameraButtons = byId('toggleCamera').closest<HTMLElement>('.button-row');
+  if (cameraButtons) cameraButtons.hidden = true;
+  showDemoSample('/assets/demo-screen.webp', 'Sample screen');
+  priorText = SAMPLE_TEXT;
+  lastSpoken = SAMPLE_TEXT.replace(/\n/g, '. ');
+  showResult(SAMPLE_TEXT, SAMPLE_TEXT.split('\n'));
+  setReadState('Sample result');
+  await seedDemoHistory();
+  await renderHistory();
+  byId('loadUpdatedSample').addEventListener('click', () => showDemoSample('/assets/demo-screen-changed.webp', 'Updated sample ready'));
+  byId('resetDemo').addEventListener('click', resetDemo);
+  byId('startReal').addEventListener('click', leaveDemo);
+}
+
+function showDemoSample(source: string, state: string): void {
+  const image = byId<HTMLImageElement>('photoPreview');
+  image.src = source;
+  image.hidden = false;
+  byId('camera').hidden = true;
+  byId('emptyCamera').hidden = true;
+  setCameraState(state);
+  setMessage('');
+}
+
+async function seedDemoHistory(): Promise<void> {
+  if ((await getReadings()).length) return;
+  const samples: Reading[] = [
+    { id: 'demo-access', createdAt: '2026-09-06T10:15:00.000Z', text: SAMPLE_TEXT, changed: SAMPLE_TEXT.split('\n') },
+    { id: 'demo-document', createdAt: '2026-09-06T10:10:00.000Z', text: 'DOCUMENT REVIEW\nPage 2 of 4\nChanges saved', changed: ['Changes saved'] },
+    { id: 'demo-kiosk', createdAt: '2026-09-06T10:05:00.000Z', text: 'KIOSK CHECKOUT\nTotal ₹840\nChoose payment method', changed: ['Total ₹840', 'Choose payment method'] },
+  ];
+  for (const reading of [...samples].reverse()) await saveReading(reading, 5);
+}
+
+async function resetDemo(): Promise<void> {
+  await clearReadings();
+  clearDemoLocalSettings();
+  await seedDemoHistory();
+  priorText = SAMPLE_TEXT;
+  lastSpoken = SAMPLE_TEXT.replace(/\n/g, '. ');
+  region = { ...DEFAULT_REGION };
+  byId<HTMLInputElement>('textZoom').value = '32';
+  byId<HTMLInputElement>('speechRate').value = '1';
+  updateZoom(); updateRate(); updateSelection();
+  showDemoSample('/assets/demo-screen.webp', 'Sample screen');
+  showResult(SAMPLE_TEXT, SAMPLE_TEXT.split('\n'));
+  setReadState('Sample result');
+  await renderHistory();
+  setMessage('Sample data reset. Your real reader data was not changed.', 'success');
+}
+
+async function leaveDemo(event: Event): Promise<void> {
+  event.preventDefault();
+  await clearReadings();
+  await deleteDemoReadings().catch(() => undefined);
+  clearDemoLocalSettings();
+  location.assign('/#reader');
+}
+
+function clearDemoLocalSettings(): void {
+  const keys = Array.from({ length: localStorage.length }, (_, index) => localStorage.key(index));
+  keys.forEach(key => { if (key?.startsWith('demo:')) localStorage.removeItem(key); });
 }
 
 interface AndroidRelease {
@@ -406,7 +515,7 @@ function updateZoom(): void {
 function updateRate(): void {
   const value = byId<HTMLInputElement>('speechRate').value;
   byId('rateValue').textContent = `${Number(value).toFixed(1).replace('.0', '')}×`;
-  localStorage.setItem('reader:speech-rate', value);
+  localStorage.setItem(localKey('reader:speech-rate'), value);
 }
 
 async function copyText(): Promise<void> {
@@ -463,7 +572,7 @@ async function importHistory(event: Event): Promise<void> {
 interface SavedRegion { name: string; region: Region }
 
 function savedRegions(): SavedRegion[] {
-  try { return JSON.parse(localStorage.getItem('reader:saved-regions') || '[]') as SavedRegion[]; }
+  try { return JSON.parse(localStorage.getItem(localKey('reader:saved-regions')) || '[]') as SavedRegion[]; }
   catch { return []; }
 }
 
@@ -484,7 +593,7 @@ function saveCurrentRegion(): void {
   if (existing >= 0) rows[existing] = item;
   else if (rows.length < 10) rows.push(item);
   else { message.textContent = 'Ten regions are already saved. Reuse a name to replace one.'; return; }
-  localStorage.setItem('reader:saved-regions', JSON.stringify(rows));
+  localStorage.setItem(localKey('reader:saved-regions'), JSON.stringify(rows));
   input.value = ''; message.textContent = `${name} saved on this device.`; renderSavedRegions();
 }
 
@@ -547,6 +656,17 @@ function registerServiceWorker(): void {
   });
 }
 
+function renderNotFound(): void {
+  setMetadata({
+    title: 'Page not found — Anywhere Reader',
+    description: 'This Anywhere Reader page does not exist. Return home or open the sample screen reading.',
+    canonical: `${PRODUCT_ORIGIN}/404`,
+  });
+  app.innerHTML = `${header()}<main id="main" class="not-found"><div class="not-found-code" aria-hidden="true">404</div><p class="eyebrow">PAGE NOT FOUND</p><h1>Page not found</h1><p>The address may be old or mistyped. Return home or open the sample reader.</p><div class="button-row"><a class="primary" href="/">Return home</a><a class="secondary" href="/demo">Try sample data</a></div></main>${footer()}`;
+}
+
 const path = location.pathname.replace(/\/$/, '') || '/';
 if (path === '/privacy' || path === '/terms') renderLegal(path.slice(1) as 'privacy' | 'terms');
-else renderHome();
+else if (path === '/demo' || (path === '/' && new URLSearchParams(location.search).get('demo') === '1')) renderHome(true);
+else if (path === '/' || path === '/index.html') renderHome();
+else renderNotFound();

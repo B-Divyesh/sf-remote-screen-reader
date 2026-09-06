@@ -1,7 +1,7 @@
-const VERSION = 'reader-v2';
+const VERSION = 'reader-v3';
 const SHELL = `${VERSION}-shell`;
 const OCR = `${VERSION}-ocr`;
-const APP_SHELL = ['/offline.html', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png'];
+const APP_SHELL = ['/offline.html', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/icons/apple-touch-icon.png', '/assets/demo-screen.webp', '/assets/demo-screen-changed.webp'];
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
@@ -43,7 +43,7 @@ self.addEventListener('fetch', event => {
       try {
         const fresh = await fetch(event.request);
         const cache = await caches.open(SHELL);
-        cache.put('/', fresh.clone());
+        if (fresh.ok) cache.put('/', fresh.clone());
         return fresh;
       } catch {
         return (await caches.match('/')) || (await caches.match('/offline.html'));

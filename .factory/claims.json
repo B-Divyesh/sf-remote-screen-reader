@@ -1,0 +1,191 @@
+[
+  {
+    "id": "sample-demo",
+    "claim": "Try a prepared screen reading without using your camera.",
+    "where": "landing page, demo",
+    "test": "npm run test:claims -- --grep @claim:sample-demo",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "demo-isolation",
+    "claim": "Sample actions and reset do not change real reader data.",
+    "where": "demo",
+    "test": "npm run test:claims -- --grep @claim:demo-isolation",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "local-private-ocr",
+    "claim": "The reader recognizes the selected screen image on this device without cloud OCR.",
+    "where": "landing page, reader, privacy, README",
+    "test": "npm run test:claims -- --grep @claim:local-private-ocr",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "changed-line-speech",
+    "claim": "After the first reading, the phone speaks only lines that changed.",
+    "where": "reader, how it works, README",
+    "test": "npm run test:claims -- --grep @claim:changed-line-speech",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "no-account-or-control",
+    "claim": "The free reader needs no account and sends no command to the target computer.",
+    "where": "landing page, terms, README",
+    "test": "npm run test:claims -- --grep @claim:no-account-or-control",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "copy-repeat",
+    "claim": "Copy text and repeat speech use the current recognized result.",
+    "where": "reader controls",
+    "test": "npm run test:claims -- --grep @claim:copy-repeat",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "camera-consent",
+    "claim": "Live camera access starts only after explicit consent.",
+    "where": "reader, privacy, README",
+    "test": "npm run test:claims -- --grep @claim:camera-consent",
+    "sandbox": "fresh / context; stub a denied camera; prove zero permission calls before consent, one after consent, then recover with the shipped image"
+  },
+  {
+    "id": "photo-fallback",
+    "claim": "A chosen screen photo works after a camera error or invalid file.",
+    "where": "reader, privacy, README",
+    "test": "npm run test:claims -- --grep @claim:photo-fallback",
+    "sandbox": "fresh / context; reject a text file, then load tests/fixtures/screen.png and assert Photo ready"
+  },
+  {
+    "id": "keyboard-region",
+    "claim": "Keyboard arrow keys move a reading-region corner, with larger Shift steps.",
+    "where": "reader, README",
+    "test": "npm run test:claims -- --grep @claim:keyboard-region",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "region-presets",
+    "claim": "Focus, top, bottom, and whole-screen presets change the selected region.",
+    "where": "reader, README",
+    "test": "npm run test:claims -- --grep @claim:region-presets",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "text-zoom",
+    "claim": "Recognized text can be enlarged from 24 to 52 pixels.",
+    "where": "reader, README",
+    "test": "npm run test:claims -- --grep @claim:text-zoom",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "speech-rate",
+    "claim": "Speech rate can be set from 0.6 to 1.6 times.",
+    "where": "reader, README",
+    "test": "npm run test:claims -- --grep @claim:speech-rate",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "free-history",
+    "claim": "The free reader keeps the five most recent local readings.",
+    "where": "history, Pro, README",
+    "test": "npm run test:claims -- --grep @claim:free-history",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "history-persistence",
+    "claim": "Local reading history remains after a reload.",
+    "where": "history, privacy, README",
+    "test": "npm run test:claims -- --grep @claim:history-persistence",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "json-export-import",
+    "claim": "Reading history exports to JSON and imports valid Anywhere Reader JSON.",
+    "where": "reader, privacy, README",
+    "test": "npm run test:claims -- --grep @claim:json-export-import",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "clear-history",
+    "claim": "The confirmed clear action removes all local reading history.",
+    "where": "history, privacy, README",
+    "test": "npm run test:claims -- --grep @claim:clear-history",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "offline-demo",
+    "claim": "The installed sample screen opens offline after the first visit.",
+    "where": "landing page, demo, README",
+    "test": "npm run test:claims -- --grep @claim:offline-demo",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "offline-ocr",
+    "claim": "After one online preparation, the selected sample screen can be recognized offline.",
+    "where": "reader, README",
+    "test": "npm run test:claims -- --grep @claim:offline-ocr",
+    "sandbox": "fresh Chromium context using /demo and shipped sample data; external release or offer checks use their published endpoints"
+  },
+  {
+    "id": "pro-history",
+    "claim": "Verified Pro access keeps up to 50 local readings.",
+    "where": "Pro, terms, README",
+    "test": "npm run test:claims -- --grep @claim:pro-history",
+    "sandbox": "fresh / context with a recorded valid Sociobot verification response; import 55 readings and observe exactly 50"
+  },
+  {
+    "id": "pro-regions",
+    "claim": "Verified Pro access saves and names up to 10 reading regions.",
+    "where": "Pro, README",
+    "test": "npm run test:claims -- --grep @claim:pro-regions",
+    "sandbox": "fresh / context with a recorded valid Sociobot verification response; save 10 named regions and observe the 11th rejected"
+  },
+  {
+    "id": "license-recovery",
+    "claim": "A returned or pasted license is verified, and inactive access is removed.",
+    "where": "Pro, privacy, README",
+    "test": "npm run test:claims -- --grep @claim:license-recovery",
+    "sandbox": "fresh / context with recorded valid and revoked verification responses; assert URL stripping and access removal"
+  },
+  {
+    "id": "license-cache",
+    "claim": "A saved license verdict is reused for no more than one day before another check.",
+    "where": "README, license behavior",
+    "test": "npm run test:claims -- --grep @claim:license-cache",
+    "sandbox": "fresh / context with a current recorded verdict, then an expired timestamp and a recorded verification response"
+  },
+  {
+    "id": "android-bundle",
+    "claim": "The Capacitor Android bundle contains the production reader and offline English OCR model.",
+    "where": "README, Android package",
+    "test": "npm run test:claims -- --grep @claim:android-bundle",
+    "sandbox": "clean production build; byte-compare dist with the Android assets and decompress-compare the English OCR model"
+  },
+  {
+    "id": "android-download",
+    "claim": "The published Android 1.0.1 APK and matching SHA-256 checksum are available.",
+    "where": "landing page, README",
+    "test": "npm run test:claims -- --grep @claim:android-download",
+    "sandbox": "read local release metadata, then request the published APK and checksum endpoints without downloading user data"
+  },
+  {
+    "id": "one-time-pro-offer",
+    "claim": "Anywhere Reader Pro costs ₹499 as a one-time purchase.",
+    "where": "landing page, Pro, terms, README",
+    "test": "npm run test:claims -- --grep @claim:one-time-pro-offer",
+    "sandbox": "request the public Sociobot catalog and checkout; assert INR 49900 and a hosted-checkout redirect"
+  },
+  {
+    "id": "hosted-payment",
+    "claim": "Payment details are entered on the Sociobot/Dodo hosted checkout, not in this app.",
+    "where": "privacy, README, Pro",
+    "test": "npm run test:claims -- --grep @claim:hosted-payment",
+    "sandbox": "fresh / context with no card inputs; request checkout and assert the redirect uses the hosted checkout origin"
+  },
+  {
+    "id": "route-pages",
+    "claim": "Home, Demo, Privacy, Terms, and the not-found page have distinct titles and working responses.",
+    "where": "site routes",
+    "test": "npm run test:claims -- --grep @claim:route-pages",
+    "sandbox": "fresh local static preview; request every public route and an unknown route, then assert status, title, canonical, heading, and recovery link"
+  }
+]

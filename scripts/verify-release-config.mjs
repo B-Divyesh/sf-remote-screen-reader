@@ -19,6 +19,8 @@ assert(headers['Permissions-Policy']?.includes('camera=(self)'), 'Permissions-Po
 assert(config.mimeTypes?.['.webmanifest'] === 'application/manifest+json', 'web manifest must have its standard MIME type');
 assert(config.routes?.some(route => route.route === '/assets/*' && route.headers?.['Cache-Control'] === 'public, max-age=31536000, immutable'), 'fingerprinted Vite assets must have immutable caching');
 assert(config.routes?.some(route => route.route === '/android-release.json' && route.headers?.['Cache-Control'] === 'no-store'), 'Android release metadata must never be served stale');
+assert(config.responseOverrides?.['404']?.rewrite === '/404.html', 'unknown routes must use the designed 404 page');
+assert(!config.navigationFallback, 'unknown routes must not be rewritten to the landing page');
 assert(androidRelease.version === '1.0.1', 'the published Android release version must be explicit');
 assert(androidRelease.downloadUrl === 'https://github.com/B-Divyesh/sf-remote-screen-reader/releases/download/v1.0.1/anywhere-reader-1.0.1.apk', 'the APK must use the immutable public release URL');
 assert(/^[a-f0-9]{64}$/.test(androidRelease.sha256) && !/^0+$/.test(androidRelease.sha256), 'the Android release needs a real SHA-256');

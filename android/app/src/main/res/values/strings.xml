@@ -2,6 +2,4 @@
 <resources>
     <string name="app_name">Anywhere Reader</string>
     <string name="title_activity_main">Anywhere Reader</string>
-    <string name="package_name">in.sociobot.remotescreenreader</string>
-    <string name="custom_url_scheme">in.sociobot.remotescreenreader</string>
 </resources>

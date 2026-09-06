@@ -8,8 +8,11 @@ test('home is accessible, focused, and responsive', async ({ page }) => {
   await expect(page).toHaveTitle(/Anywhere Reader/);
   await expect(page.locator('h1')).toHaveCount(1);
   await expect(page.locator('main')).toHaveCount(1);
-  await expect(page.getByRole('heading', { name: /Hear the screen/ })).toBeVisible();
-  await page.getByRole('link', { name: /Try the web reader/ }).click();
+  await expect(page.getByRole('heading', { name: /Read a visible screen with your phone/ })).toBeVisible();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
+  await expect(page.getByRole('link', { name: 'Skip to main content' })).toHaveCSS('outline-width', '3px');
+  await page.getByRole('link', { name: /Use the web reader/ }).click();
   await expect(page.locator('#consentPanel')).toBeInViewport();
   const scan = await new AxeBuilder({ page }).analyze();
   expect(scan.violations.filter(item => ['serious', 'critical'].includes(item.impact || ''))).toEqual([]);
@@ -19,7 +22,7 @@ test('home is accessible, focused, and responsive', async ({ page }) => {
 });
 
 test('every visible interactive target is at least 44 by 44 CSS pixels', async ({ page }) => {
-  for (const route of ['/', '/privacy', '/terms']) {
+  for (const route of ['/', '/demo', '/privacy', '/terms', '/not-a-real-page']) {
     await page.goto(route);
     const undersized = await page.locator('a, button, summary, select, input:not(.visually-hidden):not([type="hidden"]), label.file-button, label.import-button').evaluateAll(elements => elements
       .filter(element => {
@@ -80,8 +83,8 @@ test('photo is recognized entirely on device', async ({ page }) => {
   await expect(page.locator('#readState')).not.toHaveText('Reader error');
 });
 
-test('legal routes each have one clear page heading', async ({ page }) => {
-  for (const route of ['/privacy', '/terms']) {
+test('demo, legal, and not-found routes each have one clear page heading', async ({ page }) => {
+  for (const route of ['/demo', '/privacy', '/terms', '/not-a-real-page']) {
     await page.goto(route);
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('main')).toHaveCount(1);
@@ -90,11 +93,31 @@ test('legal routes each have one clear page heading', async ({ page }) => {
   }
 });
 
-test('installed shell opens while offline', async ({ page, context }) => {
+test('reduced motion and enlarged text preserve the layout', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/demo');
+  const moving = await page.locator('*').evaluateAll(elements => elements.filter(element => {
+    const style = getComputedStyle(element);
+    return `${style.animationDuration},${style.transitionDuration}`.split(',').some(value => {
+      const duration = value.trim();
+      const milliseconds = duration.endsWith('ms') ? Number.parseFloat(duration) : Number.parseFloat(duration) * 1000;
+      return milliseconds > 0.01;
+    });
+  }).length);
+  expect(moving).toBe(0);
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+  await expect(page.getByRole('button', { name: /Read visible region/ })).toBeVisible();
+});
+
+test('installed shell opens while offline', async ({ browser }) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
   await page.goto('/');
   await page.waitForFunction(() => navigator.serviceWorker?.controller !== null, null, { timeout: 15_000 });
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole('heading', { name: /Hear the screen/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Read a visible screen with your phone/ })).toBeVisible();
   await expect(page.getByText('Offline mode.')).toBeVisible();
+  await context.close();
 });
