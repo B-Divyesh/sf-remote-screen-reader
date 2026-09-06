@@ -1,5 +1,21 @@
 # Anywhere Reader repair handoff
 
+## Verification 4 addendum — PASS
+
+Independent verification on 2026-09-06 accepted implementation
+`0e7e6b956b429b4b70e5540fc4bf13cd8ebbea3d`; the documentation SHA is
+`fe939973a0d2d0eca9baae0ef81cefac41883931`. There were zero findings and zero
+untested public claims. A fresh clone passed every one of the 27 declared claim
+commands, `npm test`, `npm run build`, Android debug/lint/unit checks after the
+documented JDK 21 and Android SDK 35 were installed, plus live browser and
+release checks. Fresh full axe scans found zero violations. Fresh Lighthouse
+was 98 Performance / 100 Accessibility / 100 Best Practices / 100 SEO (LCP
+1.4 s, CLS 0). The live and local candidate `index.html` SHA-256 values match:
+`c59b97ec595e8164e5448b375a489bfbfa779f90f28f0c8f66ccbd0c60e7828e`.
+
+See `.factory/verification-4.md` for the complete evidence, earlier-finding
+disposition, and the remaining physical-device/payment limits.
+
 **Work order:** `remote-screen-reader-repair-3`
 
 **Result:** ready for strict review; no known open findings from review 1
