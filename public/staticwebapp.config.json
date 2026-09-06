@@ -15,6 +15,10 @@
   },
   "routes": [
     {
+      "route": "/404",
+      "statusCode": 404
+    },
+    {
       "route": "/android-release.json",
       "headers": {
         "Cache-Control": "no-store"
