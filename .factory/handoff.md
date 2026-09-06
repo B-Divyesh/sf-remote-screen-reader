@@ -5,6 +5,7 @@
 **Work order:** `remote-screen-reader-repair-4`  
 **Live URL:** <https://remote-screen-reader.sociobot.in>  
 **Deployed implementation SHA:** `58705fad75db8ecf67c2efb78cc001c68e38a6ad`  
+**Documentation evidence SHA:** `2a5a8bdce21a178376566f7a3bbc81d1b21d8308` (later than the deployed implementation)  
 **Live and local `index.html` SHA-256:**
 `7b6a4d7c2ca8815c994f11b8807cff2a37711436dd1b640908c06400c8b989b4`
 
