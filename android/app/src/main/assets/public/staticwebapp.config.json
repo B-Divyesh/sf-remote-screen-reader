@@ -16,6 +16,7 @@
   "routes": [
     {
       "route": "/404",
+      "methods": ["GET", "HEAD"],
       "statusCode": 404
     },
     {
