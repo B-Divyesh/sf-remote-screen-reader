@@ -21,6 +21,12 @@ try {
     page.on('request', request => origins.add(new URL(request.url()).origin));
     await page.goto(url, { waitUntil: 'networkidle' });
 
+    const firstScreen = await page.evaluate(() => ({
+      job: document.querySelector('h1')?.textContent?.trim(),
+      audience: document.querySelector('.hero .lede')?.textContent?.trim(),
+      firstAction: [...document.querySelectorAll('a, button')].find(element => element.textContent?.trim() === 'Try it with sample data')?.textContent?.trim(),
+    }));
+
     const structure = await page.evaluate(() => {
       const undersizedLinks = [...document.querySelectorAll('a')]
         .filter(link => {
@@ -43,7 +49,7 @@ try {
       outlineWidth: getComputedStyle(document.activeElement).outlineWidth,
     }));
     const axe = await new AxeBuilder({ page }).analyze();
-    const severe = axe.violations.filter(item => ['serious', 'critical'].includes(item.impact || ''));
+    const violations = axe.violations;
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const moving = await page.locator('*').evaluateAll(elements => elements.filter(element => {
       const style = getComputedStyle(element);
@@ -56,11 +62,23 @@ try {
 
     assert(errors.length === 0, `${viewport.name} emitted console/page errors: ${errors.join('; ')}`);
     assert([...origins].every(origin => origin === expectedOrigin), `${viewport.name} initial load contacted an unexpected origin`);
+    assert(firstScreen.job === 'Read a visible screen with your phone', `${viewport.name} does not state the reader job before scrolling`);
+    assert(firstScreen.audience === 'For blind and low-vision people using computers where screen-reader software cannot be installed.', `${viewport.name} does not state the intended audience before scrolling`);
+    assert(firstScreen.firstAction === 'Try it with sample data', `${viewport.name} does not state the first action before scrolling`);
     assert(structure.h1 === 1 && structure.main === 1 && !structure.overflow, `${viewport.name} semantic/responsive structure failed`);
     assert(structure.undersizedLinks.length === 0, `${viewport.name} has undersized links: ${structure.undersizedLinks.join(', ')}`);
     assert(moving === 0, `${viewport.name} reduced-motion styles still animate`);
-    assert(severe.length === 0, `${viewport.name} axe found serious/critical violations`);
+    assert(violations.length === 0, `${viewport.name} axe found violations: ${violations.map(item => item.id).join(', ')}`);
     assert(keyboard.label === 'Skip to main content' && keyboard.outline !== 'none' && keyboard.outlineWidth === '3px', `${viewport.name} skip-link keyboard focus is not visible`);
+
+    await page.getByRole('link', { name: 'Try it with sample data' }).click();
+    await page.waitForURL(/\/demo$/);
+    assert(await page.getByText('Demo — sample data, nothing is saved').isVisible(), `${viewport.name} demo banner is missing`);
+    assert(await page.locator('#changedOutput').getByText('ACCESS PANEL').isVisible(), `${viewport.name} demo does not show populated sample output`);
+    const demoAxe = await new AxeBuilder({ page }).analyze();
+    assert(demoAxe.violations.length === 0, `${viewport.name} demo axe found violations: ${demoAxe.violations.map(item => item.id).join(', ')}`);
+    await page.getByRole('button', { name: 'Reset demo' }).click();
+    assert(await page.locator('#changedOutput').getByText('Press Enter to continue').isVisible(), `${viewport.name} demo reset did not restore sample output`);
 
     if (viewport.name === 'mobile') {
       await page.waitForFunction(() => navigator.serviceWorker?.controller !== null, null, { timeout: 15_000 });
@@ -68,9 +86,22 @@ try {
       await page.reload({ waitUntil: 'domcontentloaded' });
       assert(await page.getByText('Offline mode.').isVisible(), 'mobile offline reload did not show the offline state');
     }
-    reports.push({ viewport: viewport.name, structure: { ...structure, moving }, axeSeriousOrCritical: severe.length, keyboard, errors, origins: [...origins] });
+    reports.push({ viewport: viewport.name, firstScreen, structure: { ...structure, moving }, axeViolations: violations.length, demoAxeViolations: demoAxe.violations.length, keyboard, errors, origins: [...origins] });
     await context.close();
   }
+
+  const fallbackContext = await browser.newContext();
+  const fallback = await fallbackContext.newPage();
+  const fallbackErrors = [];
+  fallback.on('console', message => { if (message.type() === 'error') fallbackErrors.push(message.text()); });
+  const fallbackResponse = await fallback.goto(`${url}/offline.html`, { waitUntil: 'networkidle' });
+  assert(fallbackResponse?.status() === 200, 'offline fallback did not return 200');
+  assert(await fallback.title() === 'Reader is offline — Anywhere Reader', 'offline fallback title is not specific');
+  assert(await fallback.getByRole('heading', { name: 'Reader is offline' }).isVisible(), 'offline fallback does not state the offline condition plainly');
+  assert(await fallback.locator('body').evaluate(element => getComputedStyle(element).backgroundColor) === 'rgb(9, 12, 11)', 'offline fallback styles did not load');
+  assert(fallbackErrors.length === 0, `offline fallback emitted console errors: ${fallbackErrors.join('; ')}`);
+  reports.push({ fallback: { errors: fallbackErrors, styled: true } });
+  await fallbackContext.close();
 } finally {
   await browser.close();
 }
