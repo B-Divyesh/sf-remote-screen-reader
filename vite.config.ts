@@ -12,7 +12,7 @@ export default defineConfig({
         mkdirSync(directory, { recursive: true });
         copyFileSync(resolve(output, 'index.html'), resolve(directory, 'index.html'));
       }
-      copyFileSync(resolve(output, 'index.html'), resolve(output, '404.html'));
+      copyFileSync(resolve(output, 'index.html'), resolve(output, 'not-found.html'));
     },
   }],
   build: {

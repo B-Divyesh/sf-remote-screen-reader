@@ -1,7 +1,7 @@
 {
   "responseOverrides": {
     "404": {
-      "rewrite": "/404.html"
+      "rewrite": "/not-found.html"
     }
   },
   "globalHeaders": {
@@ -14,11 +14,6 @@
     ".webmanifest": "application/manifest+json"
   },
   "routes": [
-    {
-      "route": "/404",
-      "methods": ["GET", "HEAD"],
-      "statusCode": 404
-    },
     {
       "route": "/android-release.json",
       "headers": {

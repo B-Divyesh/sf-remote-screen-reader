@@ -23,8 +23,8 @@ createServer((request, response) => {
     return;
   }
   const directoryIndex = resolve(candidate, 'index.html');
-  const file = existsSync(candidate) && statSync(candidate).isFile() ? candidate : existsSync(directoryIndex) ? directoryIndex : resolve(root, '404.html');
-  const status = file.endsWith(`${sep}404.html`) ? 404 : 200;
+  const file = existsSync(candidate) && statSync(candidate).isFile() ? candidate : existsSync(directoryIndex) ? directoryIndex : resolve(root, 'not-found.html');
+  const status = file.endsWith(`${sep}not-found.html`) ? 404 : 200;
   response.setHeader('Content-Type', types.get(extname(file)) || 'application/octet-stream');
   response.setHeader('Cache-Control', 'no-store');
   response.writeHead(status);
