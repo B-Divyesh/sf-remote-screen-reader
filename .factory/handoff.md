@@ -1,5 +1,30 @@
 # Anywhere Reader repair handoff
 
+## Review 2 addendum — FAIL
+
+Strict review on 2026-09-06 examined implementation
+`0e7e6b956b429b4b70e5540fc4bf13cd8ebbea3d` at documentation SHA
+`5aac46961b5216cc7d6799508ed3eec83506186b`. The result is **FAIL: 5 findings
+and 1 untested public claim**.
+
+The clean checkout still passes all 27 declared claim commands, `npm test`,
+`npm run build`, Android debug assembly, Android unit/lint checks, live browser
+checks, and live release reachability checks. Fresh root Lighthouse is
+100/100/100/100. The web demo, isolation/reset, local OCR, offline reload,
+legal routes, links, and deliberate 404 responses also work.
+
+The blocking issue is that the signed APK currently offered to users packages
+the pre-repair build (`index.html` hash `1840e772...`) instead of the reviewed
+candidate (`c59b97ec...`) and lacks the sample demo assets. Further findings:
+the public frame-disposal statement is unlisted and false because the capture
+canvas retains pixels after OCR; the 390 px demo hides its `h2` and triggers an
+axe heading-order violation; `/offline.html` logs a CSP error because its
+inline style is blocked; and its `Signal offline.` heading remains metaphor
+copy omitted from the audit.
+
+See `.factory/review-2.md` for evidence, all earlier-finding dispositions, and
+the required repairs. No product code was changed by this review.
+
 ## Verification 4 addendum — PASS
 
 Independent verification on 2026-09-06 accepted implementation
